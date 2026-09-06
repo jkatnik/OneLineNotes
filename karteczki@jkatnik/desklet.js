@@ -116,6 +116,7 @@ MyDesklet.prototype = {
         this._container.add_child(this._text);
 
         this._editing = false;
+        this._stageClickId = null;
 
         this._text.connect("key-press-event", Lang.bind(this, function (actor, event) {
             let key = event.get_key_symbol();
@@ -143,7 +144,7 @@ MyDesklet.prototype = {
         // (nasłuchuje na tym samym "button-press-event", ale na `this.actor`,
         // czyli rodzicu kontenera) i do obsługi menu kontekstowego, więc i
         // przeciąganie, i prawoklik przestawały działać.
-        if (event.get_button() !== 1) return;
+        if (event.get_button() !== 1 || event.get_click_count() !== 2) return;
         // Kliknięcie w karteczkę nie przenosi fokusu klawiatury X11 na
         // powłokę Cinnamona (to okno typu "desktop", nie dostaje go przez
         // zwykłe click-to-focus WM) — bez pushModal wpisywane znaki lecą
@@ -173,12 +174,23 @@ MyDesklet.prototype = {
         this._text.set_selectable(true);
         this._text.set_reactive(true);
         this._text.grab_key_focus();
+        // Main.pushModal() przechwytuje także mysz, więc klik poza kartą
+        // musi być obsłużony na scenie, aby zakończyć i zapisać edycję.
+        this._stageClickId = global.stage.connect("captured-event", Lang.bind(this, function (actor, event) {
+            let source = event.get_source();
+            if (event.type() === Clutter.EventType.BUTTON_PRESS && source !== this.actor && !this.actor.contains(source)) {
+                this._stopEditing(true);
+            }
+            return Clutter.EVENT_PROPAGATE;
+        }));
     },
 
     _stopEditing: function (save) {
         if (!this._editing) return;
         this._editing = false;
         if (!save) this._text.set_text(this._editContent);
+        global.stage.disconnect(this._stageClickId);
+        this._stageClickId = null;
         Main.popModal(this._text);
         this._text.set_editable(false);
         this._text.set_selectable(false);
