@@ -41,9 +41,17 @@ tych mechanizmów.
   ułatwia edycję zewnętrzną i przyszłe formatowanie, ale samo
   renderowanie Markdown → formatowanie w St/Clutter to osobny, większy
   temat — nie w zakresie pierwszej wersji (YAGNI, patrz PLAN.md).
-- **Font Caveat jako zależność systemowa, nie zasób bundlowany z logiką
-  ładowania.** Prościej poprosić użytkownika o jednorazową instalację
-  pliku czcionki niż pisać kod rejestrujący font w fontconfig w runtime.
+- **Font Caveat zbundlowany w repo (`assets/fonts/`), instalowany do
+  `~/.local/share/fonts/` + `fc-cache`.** Decyzja zmieniona względem
+  pierwotnego planu (miał być czystą zależnością systemową, ręcznie
+  instalowaną przez użytkownika) — dociągnięty automatycznie z Google
+  Fonts, żeby nie zależeć od ręcznego kroku. Nadal bez kodu rejestrującego
+  font w fontconfig w runtime — sama obecność plików `.ttf` w
+  `~/.local/share/fonts` wystarcza, Pango znajdzie je przez zwykłe
+  wyszukiwanie po nazwie rodziny (`font_name: "Caveat 16"` w
+  `desklet.js`). Uwaga: proces Cinnamona musi zostać zrestartowany po
+  instalacji nowego pliku fontu — już działający proces nie widzi nowo
+  dodanych czcionek bez restartu (fontconfig cache'uje listę w pamięci).
 - **Format `enabled-desklets`** to lista stringów `"UUID:instance_id:X:Y"`
   — potwierdzone eksperymentalnie (Faza 0): tymczasowe ustawienie
   `gsettings set org.cinnamon enabled-desklets

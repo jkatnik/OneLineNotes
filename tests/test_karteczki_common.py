@@ -49,7 +49,7 @@ class KarteczkiCommonTest(unittest.TestCase):
         self.assertTrue(note_path.exists())
         note = json.loads(note_path.read_text())
         self.assertEqual(note["id"], note_uuid)
-        self.assertEqual(note["content"], "")
+        self.assertEqual(note["content"], "Lorem ipsum")
         self.assertEqual(note["color"], "#112971")
         self.assertEqual(len(self.gsettings.entries), 1)
         self.assertTrue(self.gsettings.entries[0].startswith(f"{DESKLET_UUID}:1:"))

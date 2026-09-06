@@ -14,76 +14,12 @@ const ByteArray = imports.byteArray;
 const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
-const CARD_WIDTH = 350;
-const CARD_HEIGHT = 100;
+const CARD_WIDTH = 395;
+const CARD_HEIGHT = 158;
 const TEXT_PADDING = { top: 0, right: 30, bottom: 0, left: 30 };
-const TEXTURE_SHARPEN_FACTOR = 6;
-const TEXTURE_SHARPEN_RADIUS = 2;
-
-// Silne pomniejszenie zdjęcia (2172×724 → ~256×100) uśrednia sąsiednie
-// piksele i wygładza subtelną fakturę papieru do niemal płaskiej barwy.
-// Prawdziwy unsharp mask: rozmyj (box blur, separowalny — pozioma potem
-// pionowa średnia krocząca) jako lokalne "tło", potem wzmocnij różnicę
-// piksel-minus-tło. Wersja z jedną globalną średnią zamiast lokalnego
-// rozmycia obcinała jasne piksele karteczki do bieli, bo cień na brzegu
-// karty ciągnął średnią w dół.
-function boostTexture(pixbuf, factor, radius) {
-    let px = pixbuf.get_pixels();
-    let hasAlpha = pixbuf.get_has_alpha();
-    let channels = hasAlpha ? 4 : 3;
-    let rowstride = pixbuf.get_rowstride();
-    let width = pixbuf.get_width();
-    let height = pixbuf.get_height();
-    let n = height * rowstride;
-
-    let rowBlur = new Float32Array(n);
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            for (let c = 0; c < 3; c++) {
-                let sum = 0, cnt = 0;
-                for (let dx = -radius; dx <= radius; dx++) {
-                    let xx = x + dx;
-                    if (xx < 0 || xx >= width) continue;
-                    sum += px[y * rowstride + xx * channels + c];
-                    cnt++;
-                }
-                rowBlur[y * rowstride + x * channels + c] = sum / cnt;
-            }
-        }
-    }
-
-    let blurred = new Float32Array(n);
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            for (let c = 0; c < 3; c++) {
-                let sum = 0, cnt = 0;
-                for (let dy = -radius; dy <= radius; dy++) {
-                    let yy = y + dy;
-                    if (yy < 0 || yy >= height) continue;
-                    sum += rowBlur[yy * rowstride + x * channels + c];
-                    cnt++;
-                }
-                blurred[y * rowstride + x * channels + c] = sum / cnt;
-            }
-        }
-    }
-
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            let i = y * rowstride + x * channels;
-            if (hasAlpha && px[i + 3] < 10) continue;
-            for (let c = 0; c < 3; c++) {
-                let idx = i + c;
-                let v = px[idx] + (px[idx] - blurred[idx]) * (factor - 1);
-                px[idx] = Math.max(0, Math.min(255, Math.round(v)));
-            }
-        }
-    }
-}
 
 function loadImageActor(path, width, height) {
     let pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, true);
-    boostTexture(pixbuf, TEXTURE_SHARPEN_FACTOR, TEXTURE_SHARPEN_RADIUS);
     let image = new Clutter.Image();
     image.set_data(
         pixbuf.get_pixels(),
@@ -149,7 +85,7 @@ MyDesklet.prototype = {
     },
 
     _buildUI: function () {
-        let imgPath = DESKLET_ROOT + "/img/karteczka-bristol-2.png";
+        let imgPath = DESKLET_ROOT + "/img/karteczka-bristol-3.png";
         this._container = new Clutter.Actor({
             width: CARD_WIDTH,
             height: CARD_HEIGHT,
@@ -160,11 +96,13 @@ MyDesklet.prototype = {
 
         this._text = new Clutter.Text({
             text: this.note.content,
-            editable: true,
-            selectable: true,
+            editable: false,
+            selectable: false,
             single_line_mode: false,
             line_wrap: true,
-            reactive: true,
+            // Poza edycją klik musi dojść do deskletu; reactive Text
+            // przechwytuje go, zanim on_desklet_clicked() zdąży wystartować modal.
+            reactive: false,
             font_name: "Caveat 16",
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
@@ -178,11 +116,15 @@ MyDesklet.prototype = {
         this._container.add_child(this._text);
 
         this._editing = false;
-        this._stageClickId = null;
 
         this._text.connect("key-press-event", Lang.bind(this, function (actor, event) {
-            if (event.get_key_symbol() === Clutter.KEY_Escape) {
-                this._stopEditing();
+            let key = event.get_key_symbol();
+            if (key === Clutter.KEY_Escape) {
+                this._stopEditing(false);
+                return Clutter.EVENT_STOP;
+            }
+            if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter || key === Clutter.KEY_ISO_Enter) {
+                this._stopEditing(true);
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
@@ -210,29 +152,39 @@ MyDesklet.prototype = {
         this._startEditing();
     },
 
-    _startEditing: function () {
-        if (this._editing) return;
-        this._editing = true;
-        Main.pushModal(this._text);
-        // pushModal grabuje CAŁY input X11 (klawiatura+mysz), więc bez tego
-        // nasłuchu kliknięcie poza karteczką nigdy by go nie zwolniło —
-        // użytkownik zostałby zablokowany na edycji do końca sesji.
-        this._stageClickId = global.stage.connect("captured-event", Lang.bind(this, function (actor, event) {
-            if (event.type() === Clutter.EventType.BUTTON_PRESS && !this._container.contains(event.get_source())) {
-                this._stopEditing();
-            }
-            return Clutter.EVENT_PROPAGATE;
-        }));
+    on_desklet_added_to_desktop_internal: function (userEnabled) {
+        // Bazowy Flashspot przez chwilę blokuje pierwszy klik nowej karteczki.
+        this.on_desklet_added_to_desktop(userEnabled);
     },
 
-    _stopEditing: function () {
+    on_desklet_added_to_desktop: function () {
+        // Nemo może być nad nowym deskletem zanim Cinnamon zacznie śledzić
+        // jego aktor myszy. Bez tego nie docierają ani klik, ani prawoklik.
+        this._trackMouse();
+    },
+
+    _startEditing: function () {
+        if (this._editing || Main.deskletContainer.actor.get_children().some(function (actor) {
+            return actor._desklet && actor._desklet !== this && actor._desklet._editing;
+        }, this) || !Main.pushModal(this._text)) return;
+        this._editing = true;
+        this._editContent = this._text.get_text();
+        this._text.set_editable(true);
+        this._text.set_selectable(true);
+        this._text.set_reactive(true);
+        this._text.grab_key_focus();
+    },
+
+    _stopEditing: function (save) {
         if (!this._editing) return;
         this._editing = false;
-        global.stage.disconnect(this._stageClickId);
-        this._stageClickId = null;
+        if (!save) this._text.set_text(this._editContent);
         Main.popModal(this._text);
+        this._text.set_editable(false);
+        this._text.set_selectable(false);
+        this._text.set_reactive(false);
         global.stage.set_key_focus(null);
-        this._saveContent();
+        if (save) this._saveContent();
     },
 
     _hexToClutterColor: function (hex) {

@@ -8,6 +8,7 @@ from pathlib import Path
 
 DESKLET_UUID = "karteczki@jkatnik"
 DATA_DIR = Path.home() / ".local/share/karteczki"
+DEFAULT_CONTENT = "Lorem ipsum"
 DEFAULT_COLOR = "#112971"
 DEFAULT_FONT = "Caveat"
 DEFAULT_BACKGROUND = "karteczka-bristol.png"
@@ -60,7 +61,7 @@ def create_note(data_dir=DATA_DIR, run=subprocess.run):
     now = datetime.now(timezone.utc).astimezone().isoformat()
     note = {
         "id": note_uuid,
-        "content": "",
+        "content": DEFAULT_CONTENT,
         "color": DEFAULT_COLOR,
         "font": DEFAULT_FONT,
         "background": DEFAULT_BACKGROUND,

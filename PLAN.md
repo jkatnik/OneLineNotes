@@ -141,6 +141,44 @@
   POZA tekstem (marginesy), a kliknięcie w sam tekst nadal edytuje. To
   standardowe zachowanie edytowalnego tekstu w Clutter, nie bug tego kodu.
 
+- **Domyślna treść nowej karteczki: "Lorem ipsum"** (było puste `""`).
+  Zmiana w `bin/karteczki_common.py` (`DEFAULT_CONTENT`), test
+  zaktualizowany. Zweryfikowane przez `bin/karteczki-nowa` na żywo.
+
+- **Tło zmienione na `karteczka-bristol-3.png`** (395×158, dokładnie w tym
+  rozmiarze co karta — `CARD_WIDTH`/`CARD_HEIGHT` ustawione na 395×158,
+  renderowane 1:1, bez pomniejszania). Ten asset ma widoczną fakturę
+  papieru i cień naturalnie, bez kombinowania z kodem — usunięty więc
+  cały hack `boostTexture()`/unsharp mask z poprzedniej sesji (był
+  potrzebny tylko przy silnym, >8× pomniejszeniu starszych assetów;
+  przy renderowaniu 1:1 tylko psułby obraz).
+- **Zdiagnozowany „powrót" problemu z fokusem (2026-09-06, wieczór) — NIE
+  regres w kodzie.** Ustalone przez sprawdzenie na żywo (D-Bus Eval) w
+  reakcji na prawdziwe kliknięcie użytkownika: `on_desklet_clicked` w
+  ogóle się nie odpalał, `Main.modalCount` zostawał na 0 — zdarzenie
+  kliknięcia nie docierało do pulpitu Cinnamona w ogóle, nawet przy
+  kliknięciu w czyste tło pulpitu (nie samą karteczkę). Aktywnym oknem
+  wg WM cały czas zostawało „Guake!" (terminal), mimo że jego okno
+  siedziało poza widocznym obszarem ekranu (x znacznie poza szerokością
+  ekranu) — podejrzenie: Guake w trybie "schowany poza ekran zamiast
+  odmapowany" trzyma jakiś grab wejścia. Do zweryfikowania przez
+  użytkownika: czy przełączenie widoczności Guake (zwykle F12)
+  przywraca normalne klikanie w pulpit.
+
+- **Font Caveat pobrany z Google Fonts i zainstalowany** (zmiana decyzji
+  z AGENTS.md — wcześniej "system dependency, instalacja ręczna
+  użytkownika", teraz zbundlowany w repo). Pliki `assets/fonts/Caveat-Regular.ttf`
+  i `Caveat-Bold.ttf` pobrane z `fonts.gstatic.com` (przez CSS API
+  `fonts.googleapis.com/css2?family=Caveat`, bo endpoint
+  `fonts.google.com/download` teraz zwraca HTML, nie zip), skopiowane do
+  `~/.local/share/fonts/`, odświeżone `fc-cache -f`. Uwaga: samo
+  `fc-cache` NIE wystarczyło dla już działającego procesu Cinnamona —
+  Pango/fontconfig cache'uje listę fontów w pamięci procesu przy starcie,
+  więc nowo zainstalowany font stał się widoczny dopiero po restarcie
+  powłoki (`global.reexec_self()` przez D-Bus Eval, odpowiednik Alt+F2
+  "r"). `desklet.js` już wcześniej używał `font_name: "Caveat 16"` — bez
+  zmian w kodzie, tylko instalacja czcionki.
+
 ## Wejście brakujące od użytkownika
 
 - **Dokładny odcień "niebieskiego atramentu"** — do czasu decyzji przyjęty
