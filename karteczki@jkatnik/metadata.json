@@ -1,0 +1,8 @@
+{
+    "uuid": "karteczki@jkatnik",
+    "name": "Karteczka",
+    "description": "Karteczka samoprzylepna z treścią w Markdown",
+    "version": "1.0",
+    "max-instances": "-1",
+    "prevent-decorations": true
+}
