@@ -1,11 +1,38 @@
 #!/usr/bin/env python3
-"""Tworzy nową karteczkę: plik JSON + wpis w enabled-desklets."""
+"""Tworzy nową karteczkę: plik JSON + wpis w enabled-desklets.
+
+Użycie: karteczki-nowa [x y]
+
+Bez argumentów karteczka ląduje pod kursorem — tak wywołuje ją akcja Nemo,
+która nie ma jak podać współrzędnych kliknięcia. Desklet podaje je jawnie:
+zna punkt, w którym rozwinięto jego menu kontekstowe.
+"""
 import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from karteczki_common import create_note
 
+
+def pointer_position():
+    try:
+        import gi
+        gi.require_version("Gdk", "3.0")
+        from gi.repository import Gdk
+
+        _, x, y = Gdk.Display.get_default().get_default_seat().get_pointer().get_position()
+        return x, y
+    except Exception:
+        return None  # bez X11/Gdk zostaje kaskada od lewego górnego rogu
+
+
 if __name__ == "__main__":
-    instance_id, note_uuid = create_note()
+    if len(sys.argv) == 3:
+        position = (int(sys.argv[1]), int(sys.argv[2]))
+    elif len(sys.argv) == 1:
+        position = pointer_position()
+    else:
+        sys.exit("użycie: karteczki-nowa [x y]")
+
+    instance_id, note_uuid = create_note(position=position)
     print(f"{instance_id}:{note_uuid}")

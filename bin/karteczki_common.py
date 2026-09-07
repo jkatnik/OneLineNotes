@@ -50,12 +50,20 @@ def _save_mapping(mapping, data_dir):
     _mapping_path(data_dir).write_text(json.dumps(mapping, indent=2, ensure_ascii=False))
 
 
-def create_note(data_dir=DATA_DIR, run=subprocess.run):
+def create_note(data_dir=DATA_DIR, run=subprocess.run, position=None):
+    """position=(x, y) — lewy górny róg karteczki; None = kaskada od BASE_X/Y.
+
+    Bez sprawdzania granic ekranu: karteczka rzucona tuż przy krawędzi
+    wystaje poza nią i trzeba ją przeciągnąć.
+    """
     data_dir.mkdir(parents=True, exist_ok=True)
     entries = gsettings_get_desklets(run)
     instance_id = _next_instance_id(entries)
-    offset = sum(1 for e in entries if e.startswith(DESKLET_UUID + ":"))
-    x, y = BASE_X + POSITION_STEP * offset, BASE_Y + POSITION_STEP * offset
+    if position is not None:
+        x, y = int(position[0]), int(position[1])
+    else:
+        offset = sum(1 for e in entries if e.startswith(DESKLET_UUID + ":"))
+        x, y = BASE_X + POSITION_STEP * offset, BASE_Y + POSITION_STEP * offset
 
     note_uuid = str(uuid.uuid4())
     now = datetime.now(timezone.utc).astimezone().isoformat()

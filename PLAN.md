@@ -77,6 +77,16 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 - **Ctrl+klik** w link → `xdg-open`. Zwykły klik nie może tego robić: przy
   dwukliku Clutter wysyła najpierw zdarzenie z `click_count === 1`, więc
   wejście w edycję nad linkiem odpalałoby przeglądarkę.
+- **Kursor nad linkiem** zmienia się na rączkę (`motion-event` na
+  kontenerze + `global.set_cursor(Cinnamon.Cursor.POINTING_HAND)`). Kursor
+  jest globalny, więc `leave-event` musi go oddawać — inaczej rączka
+  zostaje na całym pulpicie.
+- **Nowa karteczka pojawia się tam, gdzie rozwinięto menu.** Desklet
+  zapamiętuje `global.get_pointer()` na `open-state-changed` menu (punkt
+  otwarcia, nie punkt kliknięcia w pozycję „Nowa karteczka") i podaje go
+  skryptowi: `karteczki-nowa [x y]`. Akcja Nemo nie ma jak podać
+  współrzędnych, więc skrypt bez argumentów pyta o pozycję kursora przez
+  Gdk. Bez argumentów i bez Gdk zostaje stara kaskada od `BASE_X/BASE_Y`.
 - **Prawoklik** → menu: „Kolor atramentu" (podmenu z kropką przy
   aktywnym), „Usuń", „Nowa karteczka".
 - **Enter** → zapis i wyjście z edycji, **Escape** → anulowanie (przywraca

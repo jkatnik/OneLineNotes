@@ -54,6 +54,20 @@ class KarteczkiCommonTest(unittest.TestCase):
         self.assertEqual(len(self.gsettings.entries), 1)
         self.assertTrue(self.gsettings.entries[0].startswith(f"{DESKLET_UUID}:1:"))
 
+    def test_create_note_uzywa_podanej_pozycji(self):
+        _, note_uuid = create_note(self.data_dir, run=self.gsettings, position=(1234, 567))
+
+        self.assertEqual(self.gsettings.entries[0], f"{DESKLET_UUID}:1:1234:567")
+        note = json.loads((self.data_dir / f"{note_uuid}.json").read_text())
+        self.assertEqual(note["position"], {"x": 1234, "y": 567})
+
+    def test_create_note_bez_pozycji_kaskaduje(self):
+        create_note(self.data_dir, run=self.gsettings)
+        create_note(self.data_dir, run=self.gsettings)
+
+        self.assertEqual(self.gsettings.entries[0], f"{DESKLET_UUID}:1:100:100")
+        self.assertEqual(self.gsettings.entries[1], f"{DESKLET_UUID}:2:130:130")
+
     def test_create_note_zwieksza_instance_id(self):
         create_note(self.data_dir, run=self.gsettings)
         instance_id, _ = create_note(self.data_dir, run=self.gsettings)

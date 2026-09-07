@@ -5,6 +5,7 @@ const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
 const GdkPixbuf = imports.gi.GdkPixbuf;
 const Cogl = imports.gi.Cogl;
+const Cinnamon = imports.gi.Cinnamon;
 const Lang = imports.lang;
 const Main = imports.ui.main;
 const Util = imports.misc.util;
@@ -132,7 +133,16 @@ MyDesklet.prototype = {
         this._editing = false;
         this._stageClickId = null;
         this._links = [];
+        this._linkCursor = false;
         this._renderContent();
+
+        this._container.connect("motion-event", Lang.bind(this, this._onMotion));
+        // Kursor jest globalny, więc karta musi go oddać przy zjeździe z niej —
+        // inaczej rączka zostaje na całym pulpicie.
+        this._container.connect("leave-event", Lang.bind(this, function () {
+            this._setLinkCursor(false);
+            return Clutter.EVENT_PROPAGATE;
+        }));
 
         this._text.connect("key-press-event", Lang.bind(this, function (actor, event) {
             let key = event.get_key_symbol();
@@ -197,15 +207,31 @@ MyDesklet.prototype = {
         this._text.set_color(this._hexToClutterColor(this.note.color || DEFAULT_COLOR));
     },
 
-    _openLinkAt: function (event) {
-        if (this._editing || !this._links.length) return;
+    _linkAtEvent: function (event) {
+        if (this._editing || !this._links.length) return null;
         let [stageX, stageY] = event.get_coords();
         let [ok, x, y] = this._text.transform_stage_point(stageX, stageY);
-        // Pango dociąga kliknięcie do najbliższego znaku w linii, więc bez
-        // sprawdzenia prostokąta tekstu klik obok karty trafiałby w link.
-        if (!ok || x < 0 || y < 0 || x > this._text.get_width() || y > this._text.get_height()) return;
-        let url = Markdown.linkAt(this._links, this._text.coords_to_position(x, y));
+        // Pango dociąga punkt do najbliższego znaku w linii, więc bez
+        // sprawdzenia prostokąta tekstu miejsce obok linku liczyłoby się jako link.
+        if (!ok || x < 0 || y < 0 || x > this._text.get_width() || y > this._text.get_height()) return null;
+        return Markdown.linkAt(this._links, this._text.coords_to_position(x, y));
+    },
+
+    _openLinkAt: function (event) {
+        let url = this._linkAtEvent(event);
         if (url) Util.spawnCommandLine("xdg-open " + GLib.shell_quote(url));
+    },
+
+    _onMotion: function (actor, event) {
+        this._setLinkCursor(this._linkAtEvent(event) !== null);
+        return Clutter.EVENT_PROPAGATE;
+    },
+
+    _setLinkCursor: function (over) {
+        if (over === this._linkCursor) return;
+        this._linkCursor = over;
+        if (over) global.set_cursor(Cinnamon.Cursor.POINTING_HAND);
+        else global.unset_cursor();
     },
 
     _startEditing: function () {
@@ -213,6 +239,7 @@ MyDesklet.prototype = {
             return actor._desklet && actor._desklet !== this && actor._desklet._editing;
         }, this) || !Main.pushModal(this._text)) return;
         this._editing = true;
+        this._setLinkCursor(false);
         this._text.set_use_markup(false);
         this._text.set_text(this.note.content || "");
         this._text.set_editable(true);
@@ -256,6 +283,16 @@ MyDesklet.prototype = {
     },
 
     _buildContextMenu: function () {
+        // Punkt rozwinięcia menu, nie punkt kliknięcia w jego pozycję — nowa
+        // karteczka ma wyjść tam, gdzie użytkownik otworzył menu.
+        this._menuPoint = null;
+        this._menu.connect("open-state-changed", Lang.bind(this, function (menu, open) {
+            if (open) {
+                let [x, y] = global.get_pointer();
+                this._menuPoint = [x, y];
+            }
+        }));
+
         let inkMenu = new PopupMenu.PopupSubMenuMenuItem("Kolor atramentu");
         this._inkItems = INK_COLORS.map(Lang.bind(this, function (ink) {
             let item = new PopupMenu.PopupMenuItem(ink.name);
@@ -301,6 +338,8 @@ MyDesklet.prototype = {
     },
 
     _onNewClicked: function () {
-        Util.spawnCommandLine(DESKLET_ROOT + "/../bin/karteczki-nowa");
+        let cmd = DESKLET_ROOT + "/../bin/karteczki-nowa";
+        if (this._menuPoint) cmd += " " + this._menuPoint[0] + " " + this._menuPoint[1];
+        Util.spawnCommandLine(cmd);
     },
 };
