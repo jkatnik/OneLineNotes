@@ -249,6 +249,16 @@ function installNemoAction() {
     saveSettings();
 }
 
+// amount 0 = bez zmian, 1 = biel.
+function lighten(color, amount) {
+    return new Clutter.Color({
+        red: Math.round(color.red + (255 - color.red) * amount),
+        green: Math.round(color.green + (255 - color.green) * amount),
+        blue: Math.round(color.blue + (255 - color.blue) * amount),
+        alpha: 255,
+    });
+}
+
 function randomRotation() {
     return Math.round((Math.random() * 2 - 1) * MAX_ROTATION * 100) / 100;
 }
@@ -509,11 +519,12 @@ MyDesklet.prototype = {
     _applyInkColor: function (hex) {
         let ink = this._hexToClutterColor(hex);
         this._text.set_color(ink);
-        // Domyślne tło zaznaczenia w Clutterze jest w tym samym, ciemnym
-        // odcieniu co atrament — zaznaczony tekst robił się nieczytelny.
-        // Tło zaznaczenia = kolor atramentu, sam tekst na biało.
-        this._text.set_selection_color(ink);
-        this._text.set_selected_text_color(new Clutter.Color({ red: 255, green: 255, blue: 255, alpha: 255 }));
+        // Jasne tło zaznaczenia, tekst w kolorze atramentu. Układ odwrotny
+        // (ciemne tło + biały tekst) wyglądał dobrze tylko dopóki zaznaczenie
+        // miało fokus — po zakończeniu zaznaczania Clutter rysuje tekst
+        // zwykłym kolorem, więc granat znikał na granatowym tle.
+        this._text.set_selection_color(lighten(ink, 0.78));
+        this._text.set_selected_text_color(ink);
     },
 
     _linkAtEvent: function (event) {
