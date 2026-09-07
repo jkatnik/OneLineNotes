@@ -110,14 +110,29 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
   kopią informacyjną — **wyjątkiem są karteczki zakotwiczone przy prawej
   lub dolnej krawędzi** (patrz niżej), którym pozycję przelicza desklet.
 - **Kotwiczenie przy krawędziach** (`karteczki_layout.js`): karta, której
-  środek leży w skrajnej ⅓ ekranu, zapisuje w JSON `anchor` — odległość od
-  prawej i/lub dolnej krawędzi zamiast polegać na samym `x, y`. Przy starcie
-  `on_desklet_added_to_desktop` przelicza z tego pozycję (Cinnamon ustawia
-  `set_position` tuż przed tym hookiem, więc to ostatni moment na nadpisanie).
-  Dzięki temu po zmianie zestawu monitorów karta przy prawej krawędzi nie
-  wyjeżdża poza ekran, a karta „na dole" nie ląduje w połowie pulpitu.
-  Oś bez kotwicy zostaje nietknięta, a wpisu w gsettings nie ruszamy —
-  kotwica jest źródłem prawdy i przelicza się przy każdym starcie.
+  środek leży w skrajnej ⅓ **monitora**, zapisuje w JSON `anchor` —
+  odległość od prawej i/lub dolnej krawędzi plus indeks monitora, zamiast
+  polegać na samym `x, y`. Dzięki temu po zmianie zestawu ekranów karta przy
+  prawej krawędzi nie wyjeżdża poza ekran, a karta „na dole" nie ląduje w
+  połowie pulpitu. Oś bez kotwicy zostaje nietknięta, a wpisu w gsettings nie
+  ruszamy — kotwica jest źródłem prawdy i przelicza się przy każdym starcie.
+  - **Względem monitora, nie całego pulpitu.** Pierwsza wersja liczyła
+    kotwicę względem `global.stage` i nie zadziałała: przy dwóch ekranach
+    (2560 + 1920) karta dosunięta do prawej krawędzi lewego monitora ma
+    środek w okolicy 2250 px, czyli w skali 4480 px leży pośrodku i nigdy nie
+    przekraczała progu.
+  - Monitor wybierany jest po indeksie zapisanym w kotwicy, dopóki taki
+    istnieje (odpięcie ekranu zmienia numerację); potem po tym, na którym
+    karta leży; w ostateczności główny.
+  - Kotwicę dostaje **każda** karta stojąca przy krawędzi, nadawana przy
+    starcie — nie tylko ta świeżo przeciągnięta. Bez tego karteczki sprzed
+    tej wersji nie miałyby czego użyć przy odpięciu monitora.
+  - Przeliczenie odpala się przy starcie (`on_desklet_added_to_desktop` —
+    Cinnamon ustawia `set_position` tuż przed nim, więc to ostatni moment na
+    nadpisanie) **oraz na sygnał `monitors-changed`** z `Main.layoutManager`,
+    w `idle`, żeby wykonać się po tym, jak Cinnamon sam ściśnie deskleta do
+    nowego układu. Odpięcie monitora nie przeładowuje deskletów, więc bez
+    tego sygnału kotwica zadziałałaby dopiero po restarcie powłoki.
 
 ### Znane niespójności (drobne, świadome)
 
@@ -210,14 +225,15 @@ Nie powstały (i nie są potrzebne): `settings-schema.json`, `icon.png`.
   "background": "karteczka-bristol-4.png",
   "rotation": 2.27,
   "position": { "x": 100, "y": 100 },
-  "anchor": { "right": 130, "bottom": 40 },
+  "anchor": { "right": 130, "bottom": 40, "monitor": 0 },
   "created_at": "2026-09-06T12:00:00+02:00",
   "modified_at": "2026-09-06T12:00:00+02:00"
 }
 ```
 
 `anchor` pojawia się tylko dla karteczek stojących wyraźnie przy prawej lub
-dolnej krawędzi — z osiami, które są zakotwiczone.
+dolnej krawędzi swojego monitora — z osiami, które są zakotwiczone, i
+indeksem monitora.
 `font` to pełny opis Pango (rodzina + rozmiar) — rodzinę można podmienić
 ręcznie w pliku, menu zmienia tylko rozmiar. `background` to sama nazwa
 pliku z `karteczki@jkatnik/img/`; nazwa nieistniejącego pliku cofa się do

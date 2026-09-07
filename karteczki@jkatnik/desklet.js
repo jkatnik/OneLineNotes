@@ -124,6 +124,17 @@ MyDesklet.prototype = {
         this._buildContextMenu();
 
         this._draggable.connect("drag-end", Lang.bind(this, this._onDragEnd));
+        // Odpięcie monitora nie przeładowuje deskletów, więc bez tego kotwica
+        // zadziałałaby dopiero po restarcie powłoki.
+        this._monitorsChangedId = Main.layoutManager.connect(
+            "monitors-changed", Lang.bind(this, this._onMonitorsChanged));
+    },
+
+    on_desklet_removed: function () {
+        if (this._monitorsChangedId) {
+            Main.layoutManager.disconnect(this._monitorsChangedId);
+            this._monitorsChangedId = 0;
+        }
     },
 
     _loadNote: function () {
@@ -254,7 +265,11 @@ MyDesklet.prototype = {
         // Nemo może być nad nowym deskletem zanim Cinnamon zacznie śledzić
         // jego aktor myszy. Bez tego nie docierają ani klik, ani prawoklik.
         this._trackMouse();
-        this._applyAnchoredPosition();
+        // Kotwicę dostaje każda karta stojąca przy krawędzi, nie tylko ta
+        // świeżo przeciągnięta — inaczej karteczki sprzed tej wersji nie
+        // przetrwałyby odpięcia monitora.
+        if (this.note.anchor) this._applyAnchoredPosition();
+        else if (this._updateAnchor() && this.notePath) writeJson(this.notePath, this.note);
     },
 
     _applyBackground: function () {
@@ -497,28 +512,52 @@ MyDesklet.prototype = {
     _onDragEnd: function () {
         let [x, y] = this.actor.get_position();
         this.note.position = { x: x, y: y };
-        let [w, h] = this._container.get_size();
-        let [screenW, screenH] = [global.stage.get_width(), global.stage.get_height()];
-        let anchor = Layout.anchorFor(x, y, w, h, screenW, screenH);
-        if (Object.keys(anchor).length) this.note.anchor = anchor;
-        else delete this.note.anchor;
+        this._updateAnchor();
         this._saveNote();
     },
 
-    // Cinnamon ustawia pozycję z gsettings tuż przed tym hookiem, więc to
-    // ostatni moment, żeby ją nadpisać wartością wyliczoną z kotwicy.
-    // Wpisu w gsettings nie ruszamy — kotwica jest źródłem prawdy i i tak
-    // przelicza się przy każdym starcie.
+    _monitorFor: function () {
+        let [x, y] = this.actor.get_position();
+        let [w, h] = this._container.get_size();
+        return Layout.monitorFor(this.note.anchor, x, y, w, h,
+            Main.layoutManager.monitors, Main.layoutManager.primaryIndex);
+    },
+
+    // -> czy kotwica się zmieniła (żeby nie zapisywać pliku bez potrzeby).
+    _updateAnchor: function () {
+        let [x, y] = this.actor.get_position();
+        let [w, h] = this._container.get_size();
+        let anchor = Layout.anchorFor(x, y, w, h, this._monitorFor());
+        let nowa = Object.keys(anchor).length ? anchor : null;
+        if (JSON.stringify(nowa) === JSON.stringify(this.note.anchor || null)) return false;
+        if (nowa) this.note.anchor = nowa;
+        else delete this.note.anchor;
+        return true;
+    },
+
+    // Cinnamon ustawia pozycję z gsettings tuż przed hookiem
+    // on_desklet_added_to_desktop, więc to ostatni moment, żeby ją nadpisać
+    // wartością wyliczoną z kotwicy. Wpisu w gsettings nie ruszamy — kotwica
+    // jest źródłem prawdy i przelicza się przy każdym starcie oraz przy
+    // każdej zmianie zestawu monitorów.
     _applyAnchoredPosition: function () {
         if (!this.note.anchor) return;
         let [x, y] = this.actor.get_position();
         let [w, h] = this._container.get_size();
-        let pos = Layout.positionFor(this.note.anchor, x, y, w, h,
-            global.stage.get_width(), global.stage.get_height());
+        let pos = Layout.positionFor(this.note.anchor, x, y, w, h, this._monitorFor());
         if (pos.x === Math.round(x) && pos.y === Math.round(y)) return;
         this.actor.set_position(pos.x, pos.y);
         this.note.position = { x: pos.x, y: pos.y };
         this._saveNote();
+    },
+
+    _onMonitorsChanged: function () {
+        // Cinnamon najpierw sam ściska deskleta do nowego układu ekranów —
+        // nasze przeliczenie musi iść po jego ruchu, stąd idle.
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, Lang.bind(this, function () {
+            this._applyAnchoredPosition();
+            return GLib.SOURCE_REMOVE;
+        }));
     },
 
     _onRemoveClicked: function () {

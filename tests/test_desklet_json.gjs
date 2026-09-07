@@ -105,36 +105,57 @@ let tricky = Markdown.render("**a<b>** [x&y](http://q) *k*");
 let [parsed] = imports.gi.Pango.parse_markup(tricky.markup, -1, "\0");
 assert(parsed === true, "wygenerowany markup parsuje się w Pango");
 
-// --- kotwiczenie przy krawędziach ekranu ---
+// --- kotwiczenie przy krawędziach monitora ---
 
-const EKRAN_W = 4480, EKRAN_H = 1440, KARTA_W = 350, KARTA_H = 100;
+const KARTA_W = 350, KARTA_H = 100;
+// Realny układ z tej maszyny: laptop i monitor 28" obok siebie.
+const LAPTOP = { x: 0, y: 0, width: 2560, height: 1440, index: 0 };
+const DUZY = { x: 2560, y: 133, width: 1920, height: 1200, index: 1 };
 
-let lewaGora = Layout.anchorFor(100, 100, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
+let lewaGora = Layout.anchorFor(100, 100, KARTA_W, KARTA_H, LAPTOP);
 assert(Object.keys(lewaGora).length === 0, "karta w lewym górnym rogu nie dostaje kotwicy");
 
-let przyPrawej = Layout.anchorFor(4000, 200, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
-assert(przyPrawej.right === 130 && przyPrawej.bottom === undefined,
-    "karta przy prawej krawędzi kotwiczy się tylko w poziomie");
+// Przypadek, który zawiódł przy liczeniu względem całego pulpitu: karta przy
+// prawej krawędzi lewego monitora jest w skali 4480 px mniej więcej pośrodku.
+let przyPrawejLaptopa = Layout.anchorFor(2100, 275, KARTA_W, KARTA_H, LAPTOP);
+assert(przyPrawejLaptopa.right === 110 && przyPrawejLaptopa.monitor === 0,
+    "karta przy prawej krawędzi lewego monitora kotwiczy się do tego monitora");
+assert(przyPrawejLaptopa.bottom === undefined, "oś pionowa bez kotwicy");
 
-let przyDole = Layout.anchorFor(300, 1300, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
+let przyDole = Layout.anchorFor(300, 1300, KARTA_W, KARTA_H, LAPTOP);
 assert(przyDole.bottom === 40 && przyDole.right === undefined,
     "karta przy dolnej krawędzi kotwiczy się tylko w pionie");
 
-let rog = Layout.anchorFor(4000, 1300, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
-assert(rog.right === 130 && rog.bottom === 40, "prawy dolny róg kotwiczy się w obu osiach");
+// Monitor z przesunięciem (x=2560, y=133) — offset musi być odjęty.
+let naDuzym = Layout.anchorFor(4000, 1150, KARTA_W, KARTA_H, DUZY);
+assert(naDuzym.right === 130 && naDuzym.bottom === 83 && naDuzym.monitor === 1,
+    "kotwica na drugim monitorze liczona względem jego własnego prostokąta");
 
-// Odłączony monitor: ekran kurczy się z 4480 na 2560, karta ma zostać przy prawej.
-let poZmianie = Layout.positionFor({ right: 130 }, 4000, 200, KARTA_W, KARTA_H, 2560, EKRAN_H);
-assert(poZmianie.x === 2080, "kotwica prawa przelicza x na węższym ekranie");
-assert(poZmianie.y === 200, "oś bez kotwicy zostaje nietknięta");
+let poPrzeliczeniu = Layout.positionFor({ right: 130, bottom: 83, monitor: 1 },
+    0, 0, KARTA_W, KARTA_H, DUZY);
+assert(poPrzeliczeniu.x === 4000 && poPrzeliczeniu.y === 1150,
+    "pozycja odtworzona z kotwicy wraca na to samo miejsce");
 
-let niższyEkran = Layout.positionFor({ bottom: 40 }, 300, 1300, KARTA_W, KARTA_H, EKRAN_W, 1080);
-assert(niższyEkran.y === 940 && niższyEkran.x === 300, "kotwica dolna przelicza y na niższym ekranie");
+// Odpięty monitor 28": karta z kotwicą monitora 1 ląduje przy prawej krawędzi laptopa.
+let poOdpieciu = Layout.positionFor({ right: 130, monitor: 1 }, 4000, 300, KARTA_W, KARTA_H, LAPTOP);
+assert(poOdpieciu.x === 2080, "po odpięciu ekranu karta trzyma się prawej krawędzi tego, co zostało");
+assert(poOdpieciu.y === 300, "oś bez kotwicy zostaje nietknięta");
 
-let ciasno = Layout.positionFor({ right: 130 }, 4000, 200, KARTA_W, KARTA_H, 400, EKRAN_H);
-assert(ciasno.x === 0, "przy ekranie węższym niż karta pozycja nie schodzi poniżej zera");
+let ciasno = Layout.positionFor({ right: 130 }, 4300, 300, KARTA_W, KARTA_H,
+    { x: 0, y: 0, width: 400, height: 800, index: 0 });
+assert(ciasno.x === 0, "przy monitorze węższym niż karta pozycja nie wychodzi przed jego krawędź");
 
-assert(Layout.positionFor(undefined, 10, 20, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H).x === 10,
+assert(Layout.positionFor(undefined, 10, 20, KARTA_W, KARTA_H, LAPTOP).x === 10,
     "brak kotwicy zostawia pozycję bez zmian");
+
+// Wybór monitora: zapisany indeks wygrywa, dopóki taki monitor istnieje.
+assert(Layout.monitorFor({ right: 10, monitor: 1 }, 100, 100, KARTA_W, KARTA_H, [LAPTOP, DUZY], 0) === DUZY,
+    "kotwica wskazuje monitor po indeksie");
+assert(Layout.monitorFor({ right: 10, monitor: 1 }, 100, 100, KARTA_W, KARTA_H, [LAPTOP], 0) === LAPTOP,
+    "gdy zapisany monitor zniknął, liczy się ten, na którym karta leży");
+assert(Layout.monitorFor(null, 3000, 500, KARTA_W, KARTA_H, [LAPTOP, DUZY], 0) === DUZY,
+    "bez kotwicy monitor ustalany po położeniu karty");
+assert(Layout.monitorFor(null, 9000, 9000, KARTA_W, KARTA_H, [LAPTOP, DUZY], 0) === LAPTOP,
+    "karta poza wszystkimi monitorami spada na monitor główny");
 
 print("OK: test_desklet_json.gjs");
