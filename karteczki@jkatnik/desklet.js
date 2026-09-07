@@ -17,6 +17,7 @@ const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
 imports.searchPath.unshift(DESKLET_ROOT);
 const Markdown = imports.karteczki_markdown;
+const Layout = imports.karteczki_layout;
 
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
 const IMG_DIR = DESKLET_ROOT + "/img";
@@ -253,6 +254,7 @@ MyDesklet.prototype = {
         // Nemo może być nad nowym deskletem zanim Cinnamon zacznie śledzić
         // jego aktor myszy. Bez tego nie docierają ani klik, ani prawoklik.
         this._trackMouse();
+        this._applyAnchoredPosition();
     },
 
     _applyBackground: function () {
@@ -495,6 +497,27 @@ MyDesklet.prototype = {
     _onDragEnd: function () {
         let [x, y] = this.actor.get_position();
         this.note.position = { x: x, y: y };
+        let [w, h] = this._container.get_size();
+        let [screenW, screenH] = [global.stage.get_width(), global.stage.get_height()];
+        let anchor = Layout.anchorFor(x, y, w, h, screenW, screenH);
+        if (Object.keys(anchor).length) this.note.anchor = anchor;
+        else delete this.note.anchor;
+        this._saveNote();
+    },
+
+    // Cinnamon ustawia pozycję z gsettings tuż przed tym hookiem, więc to
+    // ostatni moment, żeby ją nadpisać wartością wyliczoną z kotwicy.
+    // Wpisu w gsettings nie ruszamy — kotwica jest źródłem prawdy i i tak
+    // przelicza się przy każdym starcie.
+    _applyAnchoredPosition: function () {
+        if (!this.note.anchor) return;
+        let [x, y] = this.actor.get_position();
+        let [w, h] = this._container.get_size();
+        let pos = Layout.positionFor(this.note.anchor, x, y, w, h,
+            global.stage.get_width(), global.stage.get_height());
+        if (pos.x === Math.round(x) && pos.y === Math.round(y)) return;
+        this.actor.set_position(pos.x, pos.y);
+        this.note.position = { x: pos.x, y: pos.y };
         this._saveNote();
     },
 

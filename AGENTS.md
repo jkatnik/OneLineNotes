@@ -41,6 +41,14 @@ tych mechanizmów.
   we własnym gsettings, ale zapisujemy `position` też do pliku JSON, żeby
   backup/restore samych plików JSON odtwarzał układ pulpitu bez zależności
   od stanu gsettings.
+- **Kotwiczenie przy prawej/dolnej krawędzi** (`karteczki_layout.js`).
+  Współrzędne z gsettings są liczone od lewego górnego rogu, więc po zmianie
+  zestawu monitorów karta z prawej strony wyjeżdża poza ekran, a karta „na
+  dole" ląduje w połowie pulpitu. Karty, których środek leży w skrajnej ⅓
+  ekranu, zapisują więc `anchor` (odległość od prawej/dolnej krawędzi) i
+  odtwarzają z niego pozycję w `on_desklet_added_to_desktop` — Cinnamon
+  ustawia `set_position` tuż przed tym hookiem, więc nadpisanie tam jest
+  bezpieczne i nie wymaga grzebania w `enabled-desklets`.
 - **Treść w Markdown, renderowana przez Pango markup** (decyzja zmieniona
   2026-09-07 — wcześniej tylko surowy tekst). `karteczki_markdown.js`
   zamienia `**pogrubienie**`, `*kursywę*`, `__podkreślenie__`,

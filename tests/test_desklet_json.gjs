@@ -3,6 +3,7 @@
 // (uruchom: gjs tests/test_desklet_json.gjs)
 imports.searchPath.unshift("/home/jkatnik/code/linux/karteczki/karteczki@jkatnik");
 const Markdown = imports.karteczki_markdown;
+const Layout = imports.karteczki_layout;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
@@ -103,5 +104,37 @@ assert(Markdown.linkAt(link.links, 0) === null, "tekst przed linkiem to nie link
 let tricky = Markdown.render("**a<b>** [x&y](http://q) *k*");
 let [parsed] = imports.gi.Pango.parse_markup(tricky.markup, -1, "\0");
 assert(parsed === true, "wygenerowany markup parsuje się w Pango");
+
+// --- kotwiczenie przy krawędziach ekranu ---
+
+const EKRAN_W = 4480, EKRAN_H = 1440, KARTA_W = 350, KARTA_H = 100;
+
+let lewaGora = Layout.anchorFor(100, 100, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
+assert(Object.keys(lewaGora).length === 0, "karta w lewym górnym rogu nie dostaje kotwicy");
+
+let przyPrawej = Layout.anchorFor(4000, 200, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
+assert(przyPrawej.right === 130 && przyPrawej.bottom === undefined,
+    "karta przy prawej krawędzi kotwiczy się tylko w poziomie");
+
+let przyDole = Layout.anchorFor(300, 1300, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
+assert(przyDole.bottom === 40 && przyDole.right === undefined,
+    "karta przy dolnej krawędzi kotwiczy się tylko w pionie");
+
+let rog = Layout.anchorFor(4000, 1300, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H);
+assert(rog.right === 130 && rog.bottom === 40, "prawy dolny róg kotwiczy się w obu osiach");
+
+// Odłączony monitor: ekran kurczy się z 4480 na 2560, karta ma zostać przy prawej.
+let poZmianie = Layout.positionFor({ right: 130 }, 4000, 200, KARTA_W, KARTA_H, 2560, EKRAN_H);
+assert(poZmianie.x === 2080, "kotwica prawa przelicza x na węższym ekranie");
+assert(poZmianie.y === 200, "oś bez kotwicy zostaje nietknięta");
+
+let niższyEkran = Layout.positionFor({ bottom: 40 }, 300, 1300, KARTA_W, KARTA_H, EKRAN_W, 1080);
+assert(niższyEkran.y === 940 && niższyEkran.x === 300, "kotwica dolna przelicza y na niższym ekranie");
+
+let ciasno = Layout.positionFor({ right: 130 }, 4000, 200, KARTA_W, KARTA_H, 400, EKRAN_H);
+assert(ciasno.x === 0, "przy ekranie węższym niż karta pozycja nie schodzi poniżej zera");
+
+assert(Layout.positionFor(undefined, 10, 20, KARTA_W, KARTA_H, EKRAN_W, EKRAN_H).x === 10,
+    "brak kotwicy zostawia pozycję bez zmian");
 
 print("OK: test_desklet_json.gjs");

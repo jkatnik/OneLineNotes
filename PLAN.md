@@ -105,9 +105,19 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 - Edytować można tylko jedną karteczkę naraz (`_startEditing` sprawdza
   `_editing` pozostałych deskletów) — `Main.pushModal` robi pełny grab
   X11, dwa naraz zablokowałyby wejście.
-- Przeciągnięcie zapisuje pozycję do JSON *i* do `enabled-desklets`;
-  pozycja odtwarzana jest z gsettings, pole `position` w JSON jest tylko
-  kopią informacyjną.
+- Przeciągnięcie zapisuje pozycję do JSON *i* do `enabled-desklets`.
+  Normalnie pozycję odtwarza Cinnamon z gsettings, a `position` w JSON jest
+  kopią informacyjną — **wyjątkiem są karteczki zakotwiczone przy prawej
+  lub dolnej krawędzi** (patrz niżej), którym pozycję przelicza desklet.
+- **Kotwiczenie przy krawędziach** (`karteczki_layout.js`): karta, której
+  środek leży w skrajnej ⅓ ekranu, zapisuje w JSON `anchor` — odległość od
+  prawej i/lub dolnej krawędzi zamiast polegać na samym `x, y`. Przy starcie
+  `on_desklet_added_to_desktop` przelicza z tego pozycję (Cinnamon ustawia
+  `set_position` tuż przed tym hookiem, więc to ostatni moment na nadpisanie).
+  Dzięki temu po zmianie zestawu monitorów karta przy prawej krawędzi nie
+  wyjeżdża poza ekran, a karta „na dole" nie ląduje w połowie pulpitu.
+  Oś bez kotwicy zostaje nietknięta, a wpisu w gsettings nie ruszamy —
+  kotwica jest źródłem prawdy i przelicza się przy każdym starcie.
 
 ### Znane niespójności (drobne, świadome)
 
@@ -160,6 +170,7 @@ karteczki@jkatnik/                          # katalog desletu
 ├── metadata.json
 ├── desklet.js
 ├── karteczki_markdown.js                   # Markdown → Pango markup + pozycje linków
+├── karteczki_layout.js                     # kotwiczenie przy krawędziach ekranu
 └── img/karteczka-bristol-{3,4}.png         # kopie assetów, ładowane w runtime
 
 assets/                                     # źródła grafik i fontów
@@ -199,11 +210,14 @@ Nie powstały (i nie są potrzebne): `settings-schema.json`, `icon.png`.
   "background": "karteczka-bristol-4.png",
   "rotation": 2.27,
   "position": { "x": 100, "y": 100 },
+  "anchor": { "right": 130, "bottom": 40 },
   "created_at": "2026-09-06T12:00:00+02:00",
   "modified_at": "2026-09-06T12:00:00+02:00"
 }
 ```
 
+`anchor` pojawia się tylko dla karteczek stojących wyraźnie przy prawej lub
+dolnej krawędzi — z osiami, które są zakotwiczone.
 `font` to pełny opis Pango (rodzina + rozmiar) — rodzinę można podmienić
 ręcznie w pliku, menu zmienia tylko rozmiar. `background` to sama nazwa
 pliku z `karteczki@jkatnik/img/`; nazwa nieistniejącego pliku cofa się do

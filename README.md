@@ -50,6 +50,12 @@ Pierwsza karteczka: prawoklik na pulpicie → „Dodaj karteczkę", albo
 
 Nowa karteczka pojawia się tam, gdzie rozwinięto menu kontekstowe.
 
+Karteczka przeciągnięta **wyraźnie w prawo lub w dół** (środek w skrajnej ⅓
+ekranu) zapamiętuje odległość od tej krawędzi, a nie od lewego górnego rogu —
+w polu `anchor`. Po zmianie zestawu monitorów albo rozdzielczości taka
+karteczka zostaje przy swojej krawędzi zamiast wyjechać poza ekran czy
+wylądować w połowie pulpitu. Oś bez kotwicy nie jest ruszana.
+
 Przeciągać da się za obszar karteczki **poza tekstem** — klik w sam tekst
 przechwytuje Clutter. Przy krótkiej treści marginesu jest dużo, przy długiej
 mało.
