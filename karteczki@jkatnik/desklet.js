@@ -13,9 +13,19 @@ const ByteArray = imports.byteArray;
 
 const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
+imports.searchPath.unshift(DESKLET_ROOT);
+const Markdown = imports.karteczki_markdown;
+
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
 const CARD_WIDTH = 350;
 const CARD_HEIGHT = 100;
+const DEFAULT_COLOR = "#112971";
+const INK_COLORS = [
+    { name: "Czarny", hex: "#1a1a1a" },
+    { name: "Czerwony", hex: "#a51d2d" },
+    { name: "Niebieski", hex: DEFAULT_COLOR },
+    { name: "Zielony", hex: "#26653b" },
+];
 // bottom: 15 podnosi tekst o 7,5 px. Papier na grafice kończy się w ~85/100
 // (niżej jest wtopiony cień), a font ma długie wydłużenia dolne — bez tego
 // tekst jest wyśrodkowany geometrycznie, ale optycznie siedzi za nisko.
@@ -85,7 +95,7 @@ MyDesklet.prototype = {
             // skryptu karteczki-nowa) — karteczka bez trwałego zapisu.
             this.note = {
                 content: "(brak danych karteczki — usuń i dodaj ponownie z menu pulpitu)",
-                color: "#112971",
+                color: DEFAULT_COLOR,
             };
         }
     },
@@ -101,7 +111,6 @@ MyDesklet.prototype = {
         this._container.add_child(loadImageActor(imgPath, CARD_WIDTH, CARD_HEIGHT));
 
         this._text = new Clutter.Text({
-            text: this.note.content,
             editable: false,
             selectable: false,
             single_line_mode: false,
@@ -109,7 +118,7 @@ MyDesklet.prototype = {
             // Poza edycją klik musi dojść do deskletu; reactive Text
             // przechwytuje go, zanim on_desklet_clicked() zdąży wystartować modal.
             reactive: false,
-            font_name: "Caveat 18",
+            font_name: "Caveat 20",
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             margin_top: TEXT_PADDING.top,
@@ -117,12 +126,13 @@ MyDesklet.prototype = {
             margin_bottom: TEXT_PADDING.bottom,
             margin_left: TEXT_PADDING.left,
         });
-        this._text.set_color(this._hexToClutterColor(this.note.color || "#112971"));
         this._text.set_width(CARD_WIDTH - TEXT_PADDING.left - TEXT_PADDING.right);
         this._container.add_child(this._text);
 
         this._editing = false;
         this._stageClickId = null;
+        this._links = [];
+        this._renderContent();
 
         this._text.connect("key-press-event", Lang.bind(this, function (actor, event) {
             let key = event.get_key_symbol();
@@ -150,7 +160,15 @@ MyDesklet.prototype = {
         // (nasłuchuje na tym samym "button-press-event", ale na `this.actor`,
         // czyli rodzicu kontenera) i do obsługi menu kontekstowego, więc i
         // przeciąganie, i prawoklik przestawały działać.
-        if (event.get_button() !== 1 || event.get_click_count() !== 2) return;
+        if (event.get_button() !== 1) return;
+        if (event.get_state() & Clutter.ModifierType.CONTROL_MASK) {
+            // Ctrl+klik otwiera link. Zwykły klik nie może tego robić: przy
+            // dwukliku Clutter emituje najpierw zdarzenie z click_count 1,
+            // więc wejście w edycję nad linkiem odpalałoby przeglądarkę.
+            this._openLinkAt(event);
+            return;
+        }
+        if (event.get_click_count() !== 2) return;
         // Kliknięcie w karteczkę nie przenosi fokusu klawiatury X11 na
         // powłokę Cinnamona (to okno typu "desktop", nie dostaje go przez
         // zwykłe click-to-focus WM) — bez pushModal wpisywane znaki lecą
@@ -170,12 +188,33 @@ MyDesklet.prototype = {
         this._trackMouse();
     },
 
+    // Poza edycją treść jest renderowana jako Pango markup; w edycji widać
+    // surowy Markdown, bo to on jest zapisywany w JSON.
+    _renderContent: function () {
+        let rendered = Markdown.render(this.note.content || "");
+        this._links = rendered.links;
+        this._text.set_markup(rendered.markup);
+        this._text.set_color(this._hexToClutterColor(this.note.color || DEFAULT_COLOR));
+    },
+
+    _openLinkAt: function (event) {
+        if (this._editing || !this._links.length) return;
+        let [stageX, stageY] = event.get_coords();
+        let [ok, x, y] = this._text.transform_stage_point(stageX, stageY);
+        // Pango dociąga kliknięcie do najbliższego znaku w linii, więc bez
+        // sprawdzenia prostokąta tekstu klik obok karty trafiałby w link.
+        if (!ok || x < 0 || y < 0 || x > this._text.get_width() || y > this._text.get_height()) return;
+        let url = Markdown.linkAt(this._links, this._text.coords_to_position(x, y));
+        if (url) Util.spawnCommandLine("xdg-open " + GLib.shell_quote(url));
+    },
+
     _startEditing: function () {
         if (this._editing || Main.deskletContainer.actor.get_children().some(function (actor) {
             return actor._desklet && actor._desklet !== this && actor._desklet._editing;
         }, this) || !Main.pushModal(this._text)) return;
         this._editing = true;
-        this._editContent = this._text.get_text();
+        this._text.set_use_markup(false);
+        this._text.set_text(this.note.content || "");
         this._text.set_editable(true);
         this._text.set_selectable(true);
         this._text.set_reactive(true);
@@ -194,7 +233,9 @@ MyDesklet.prototype = {
     _stopEditing: function (save) {
         if (!this._editing) return;
         this._editing = false;
-        if (!save) this._text.set_text(this._editContent);
+        // Odczyt PRZED przywróceniem markupu — po set_markup() get_text()
+        // zwraca tekst bez znaczników, czyli nie to, co zapisujemy.
+        let edited = this._text.get_text();
         global.stage.disconnect(this._stageClickId);
         this._stageClickId = null;
         Main.popModal(this._text);
@@ -202,7 +243,11 @@ MyDesklet.prototype = {
         this._text.set_selectable(false);
         this._text.set_reactive(false);
         global.stage.set_key_focus(null);
-        if (save) this._saveContent();
+        if (save) {
+            this.note.content = edited;
+            this._saveNote();
+        }
+        this._renderContent();
     },
 
     _hexToClutterColor: function (hex) {
@@ -211,6 +256,23 @@ MyDesklet.prototype = {
     },
 
     _buildContextMenu: function () {
+        let inkMenu = new PopupMenu.PopupSubMenuMenuItem("Kolor atramentu");
+        this._inkItems = INK_COLORS.map(Lang.bind(this, function (ink) {
+            let item = new PopupMenu.PopupMenuItem(ink.name);
+            item.setShowDot((this.note.color || DEFAULT_COLOR) === ink.hex);
+            item.connect("activate", Lang.bind(this, function () {
+                this.note.color = ink.hex;
+                this._saveNote();
+                this._text.set_color(this._hexToClutterColor(ink.hex));
+                this._inkItems.forEach(function (other, i) {
+                    other.setShowDot(INK_COLORS[i].hex === ink.hex);
+                });
+            }));
+            inkMenu.menu.addMenuItem(item);
+            return item;
+        }));
+        this._menu.addMenuItem(inkMenu);
+
         let removeItem = new PopupMenu.PopupMenuItem("Usuń");
         removeItem.connect("activate", Lang.bind(this, this._onRemoveClicked));
         this._menu.addMenuItem(removeItem);
@@ -220,19 +282,16 @@ MyDesklet.prototype = {
         this._menu.addMenuItem(newItem);
     },
 
-    _saveContent: function () {
+    _saveNote: function () {
         if (!this.notePath) return;
-        this.note.content = this._text.get_text();
         this.note.modified_at = new Date().toISOString();
         writeJson(this.notePath, this.note);
     },
 
     _onDragEnd: function () {
-        if (!this.notePath) return;
         let [x, y] = this.actor.get_position();
         this.note.position = { x: x, y: y };
-        this.note.modified_at = new Date().toISOString();
-        writeJson(this.notePath, this.note);
+        this._saveNote();
     },
 
     _onRemoveClicked: function () {

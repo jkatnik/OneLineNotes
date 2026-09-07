@@ -5,203 +5,165 @@
 1. Desklet renderujący karteczkę w kształcie/kolorze fizycznego kartonika,
    na podstawie zdjęcia JPG/PNG.
 2. Pozycja "Dodaj karteczkę" w menu kontekstowym pulpitu Cinnamon.
-3. Czcionka Caveat, kolor niebieskiego atramentu.
+3. Czcionka Caveat, kolor niebieskiego atramentu (ustalony: `#112971`).
 4. Karteczka przeciągalna (drag-and-drop) po pulpicie.
 5. Menu kontekstowe karteczki: "usuń", "nowa karteczka".
-6. Tekst edytowany inline, w treści.
-7. Treść w formacie Markdown (bez renderowania formatowania — patrz
-   AGENTS.md, sekcja YAGNI).
+6. Tekst edytowany inline, w treści (wejście w edycję: dwuklik).
+7. Treść w formacie Markdown, renderowana: pogrubienie, kursywa,
+   podkreślenie, hiperłącze.
 8. Zapis: jeden plik JSON na karteczkę w `~/.local/share/karteczki/`.
 9. Schemat JSON: treść, kolor, czcionka, pozycja, data utworzenia, data
    modyfikacji, tło.
 
-## Status (ostatnia aktualizacja: 2026-09-06)
+## Status (ostatnia aktualizacja: 2026-09-07)
 
-- ✅ Zdjęcie fizycznej karteczki dostarczone i przetworzone —
-  `assets/karteczka-bristol.png` (995×388, przezroczyste tło, realna
-  faktura papieru wycięta maską wielokąta, syntetyczny cień). Gotowe do
-  użycia w Fazie 4, placeholder nie jest już potrzebny.
-- ✅ Faza 0 — format potwierdzony eksperymentalnie: `UUID:instance_id:X:Y`
-  (zweryfikowane przez tymczasowe dodanie `clock@cinnamon.org` przez
-  gsettings). Nemo `.nemo_action` na tle pulpitu — plik utworzony, **nie
-  zweryfikowane ręcznie przez kliknięcie** (do potwierdzenia przez
-  użytkownika).
-- ✅ Faza 1 — szkielet desletu (`karteczki@jkatnik/`) działa, symlink w
-  `~/.local/share/cinnamon/desklets/`, potwierdzone w logu Cinnamona:
-  `Loaded desklet karteczki@jkatnik`, bez błędów po restarcie.
-- ✅ Faza 2 — `bin/karteczki_common.py` (CRUD: tworzenie/kasowanie notatki +
-  wpis gsettings), pokryte testami `tests/test_karteczki_common.py`
-  (unittest, 6 testów, gsettings zamockowane). Zapis pozycji po
-  przeciągnięciu i zapis treści po utracie fokusu podpięte w `desklet.js`.
-- ✅ Faza 3 (częściowo) — menu kontekstowe karteczki ("Usuń", "Nowa
-  karteczka") w `desklet.js`, wpis Nemo w
+Fazy 0-4 zrobione i zweryfikowane na żywym Cinnamonie, plus formatowanie
+Markdown i wybór koloru atramentu z menu (2026-09-07). Zostaje Faza 5
+(README + spisany scenariusz testowy) i Faza 6 (wybór tła i czcionki —
+zaprojektowana, nie zaimplementowana).
+
+- ✅ Faza 0 — format `enabled-desklets` potwierdzony eksperymentalnie:
+  `UUID:instance_id:X:Y`. Akcja Nemo na tle pulpitu **zweryfikowana
+  ręcznie przez użytkownika (2026-09-07) — działa**.
+- ✅ Faza 1 — desklet `karteczki@jkatnik/` (symlink w
+  `~/.local/share/cinnamon/desklets/`), `max-instances: -1`,
+  `prevent-decorations: true`.
+- ✅ Faza 2 — `bin/karteczki_common.py` (CRUD + wpis gsettings + mapowanie
+  `instance_id`→uuid w `instances.json`), CLI `bin/karteczki-nowa`,
+  `bin/karteczki-usun`. Testy: `tests/test_karteczki_common.py`
+  (6 × unittest, gsettings zamockowane) + `tests/test_desklet_json.gjs`
+  (self-check logiki parsowania w GJS). Oba przechodzą.
+- ✅ Faza 3 — menu kontekstowe karteczki („Usuń", „Nowa karteczka"),
   `~/.local/share/nemo/actions/dodaj-karteczke.nemo_action`.
-- ⬜ Faza 4 (dopracowanie wyglądu, np. 9-slice) i Faza 5 (README,
-  scenariusz testowy) — nie zaczęte.
-- **Znalezione i naprawione błędy (weryfikacja na żywym Cinnamonie +
-  zrzuty ekranu):**
-  1. `Clutter.Color` nie ma metody instancyjnej `from_string` — to
-     statyczna funkcja zwracająca `[ok, color]`. Błędna wersja **wywalała
-     Cinnamona (SIGSEGV, dwukrotnie)** — sesja ręcznie zrestartowana
-     (`cinnamon --replace`).
-  2. Tło karteczki jako CSS `background-image` na `St.Bin` nie renderowało
-     się wiarygodnie — zastąpione sprawdzonym wzorcem z zainstalowanego
-     `notes@schorschii` (GdkPixbuf → `Clutter.Image` → `Clutter.Actor`).
-  3. `Clutter.Text` z `editable:true` nie łapie fokusu klawiatury samym
-     kliknięciem — dodano `grab_key_focus()` w handlerze
-     `button-press-event` (z `Clutter.EVENT_STOP`, żeby klik w tekst nie
-     uruchamiał przeciągania całego desletu).
-  4. Tekst wyśrodkowany pionowo na karteczce (na życzenie użytkownika) —
-     `Clutter.BinLayout` + `y_align: Clutter.ActorAlign.CENTER` zamiast
-     stałej pozycji od góry.
-  - Wszystko zweryfikowane wizualnie zrzutem ekranu głównego pulpitu i
-    testem edycji tekstu przez `xdotool` — karteczka renderuje się
-    poprawnie, tekst edytowalny i zapisywany po utracie fokusu.
-- **Otwarte:** dokładny odcień "niebieskiego atramentu" nie potwierdzony
-  przez użytkownika — roboczo `#1a3fae`. Rozmiar karteczki na pulpicie
-  (obecnie 260×101 px) też roboczy. Font Caveat nie zainstalowany na tej
-  maszynie — tekst renderuje się domyślnym fontem systemowym do czasu
-  ręcznej instalacji.
+- ✅ Faza 4 — wygląd docelowy, 9-slice okazał się niepotrzebny (karta ma
+  stały rozmiar, obrazek renderowany 1:1).
+- ⬜ Faza 5 — README i scenariusz testowy: nie zaczęte.
 
-- **Naprawiony bug (2026-09-06, po restarcie komputera): edycja inline nie
-  działała w ogóle.** Klik w tekst ustawiał wewnętrzny fokus Cluttera, ale
-  nie przenosił realnego fokusu klawiatury X11 na powłokę Cinnamona (okno
-  pulpitu jest typu `_NET_WM_WINDOW_TYPE_DESKTOP` i nie dostaje fokusu
-  przez zwykłe click-to-focus WM) — wpisywane znaki leciały do ostatnio
-  aktywnego okna. Naprawa: `Main.pushModal(this._text)` przy kliknięciu +
-  `_startEditing`/`_stopEditing` z nasłuchem kliknięcia poza karteczką i
-  obsługą Escape (bo `pushModal` robi pełny grab X11, trzeba go świadomie
-  zwalniać). Zweryfikowane end-to-end przez `xdotool` + D-Bus Eval na
-  żywym Cinnamonie, bez restartu powłoki.
-- **Tło zaktualizowane na `karteczka-bristol-2.png`** (dostarczony przez
-  użytkownika, stary `img/karteczka-bristol.png` usunięty jako nieużywany).
-  Płaski wygląd karty przy silnym pomniejszeniu (2172×724 → ~256×100,
-  >8×) to efekt uśredniania pikseli przy skalowaniu, nie wada pliku — w
-  oryginale faktura papieru jest widoczna (subtelna, niski kontrast).
-  Naprawiono w `desklet.js` (`boostTexture()`): lokalny unsharp mask
-  (separowalny box blur promień 2 jako "tło" + wzmocnienie różnicy
-  piksel-minus-tło, `TEXTURE_SHARPEN_FACTOR = 6`). Pierwsza wersja robiła
-  globalny rozciąg kontrastu wokół jednej średniej dla całej karty — cień
-  na brzegu ciągnął średnią w dół i obcinał jasne piksele karty do bieli
-  (znów płasko, tylko biało zamiast szaro). **Zaakceptowane przez
-  użytkownika jako wystarczające** — efekt wyostrzenia jest subtelny
-  (fundamentalne ograniczenie: ~5 poziomów szarości oryginalnej faktury na
-  256×100 px karcie, algorytm nie odtworzy informacji utraconej przy
-  tak mocnym pomniejszeniu bez utraty naturalnego wyglądu). Ewentualne
-  dalsze wzmocnienie: zwiększyć `CARD_WIDTH`/`CARD_HEIGHT` (więcej
-  pikseli źródłowych na kartę) albo podnieść `TEXTURE_SHARPEN_FACTOR`
-  kosztem ryzyka artefaktów na krawędziach.
+### Aktualne parametry wyglądu (`desklet.js`)
 
-- **Dopracowanie odstępów tekstu (2026-09-06):** lewy padding zmniejszony
-  o połowę (45→23px), a górny/dolny margines tekstu wyzerowany (było
-  asymetryczne 14/26, co przesuwało tekst poza prawdziwy środek mimo
-  `y_align: CENTER` — margines dolny większy niż górny ciągnął box tekstu
-  w dół przed wyśrodkowaniem). Zweryfikowane wizualnie na żywym pulpicie.
+| Co | Wartość |
+|---|---|
+| Rozmiar karty | `CARD_WIDTH` 350 × `CARD_HEIGHT` 100 |
+| Tło | `karteczki@jkatnik/img/karteczka-bristol-4.png` (przezroczyste tło, renderowane 1:1) |
+| Font | `Caveat 20` (zbundlowany w `assets/fonts/`, zainstalowany w `~/.local/share/fonts/`) |
+| Kolor atramentu | domyślnie niebieski `#112971`; z menu też czarny `#1a1a1a`, czerwony `#a51d2d`, zielony `#26653b` |
+| Padding tekstu | `{ top: 0, right: 16, bottom: 15, left: 16 }` — `bottom` podnosi tekst o 7,5 px, bo papier kończy się w ~85/100 wysokości grafiki |
+| Wyrównanie | `Clutter.BinLayout`, `y_align: CENTER`, `x_align: START` |
+| Domyślna treść nowej karteczki | `Lorem ipsum` |
 
-- **Naprawiony bug: nie dało się wejść w edycję pustej karteczki.**
-  Przyczyna: klikalny handler siedział na `_text` (`Clutter.Text`), a
-  pusty tekst ma prawie zerową naturalną wysokość (Pango nie ma czego
-  zmierzyć), więc jego hit-box praktycznie znikał — kliknięcie nigdy nie
-  trafiało w aktor tekstu. Naprawa: `button-press-event` przeniesiony na
-  `_container` (stały rozmiar 350×100, zawsze pełny obszar klikalny).
-  Przy okazji poprawiono też test „kliknięcie poza kartą” w
-  `_startEditing()` — zamiast porównania `event.get_source() !== _text`
-  (które fałszywie kończyłoby edycję przy każdym kliknięciu w środek
-  pustej/krótkiej karty, bo trafiałoby w `_container`, nie w `_text`) jest
-  teraz `!this._container.contains(event.get_source())` — sprawdza całe
-  poddrzewo karty, nie jeden konkretny aktor. Zweryfikowane end-to-end:
-  klik na pustej karcie → edycja, klik w środku podczas edycji → edycja
-  trwa, klik na zewnątrz → zapis i koniec edycji.
+### Formatowanie treści (Markdown → Pango markup)
 
-- **Naprawiony regres: D&D i menu kontekstowe przestały działać** po
-  poprzedniej poprawce (handler `button-press-event` na `_container`,
-  zawsze zwracający `Clutter.EVENT_STOP`). Przyczyna: Cinnamon-owy D&D
-  (`imports.ui.dnd`) i przełączanie menu (`_onButtonReleaseEvent` w
-  bazowym `Desklet.Desklet`) nasłuchują na `this.actor` — **przodku**
-  naszego `_container` w drzewie aktorów. `EVENT_STOP` na dziecku
-  zatrzymuje event przed dotarciem do rodzica, więc żadna z tych dwóch
-  wbudowanych funkcji nigdy nie widziała kliknięcia. Naprawa: usunięty
-  ręczny handler na `_container`, zamiast tego nadpisana metoda
-  `on_desklet_clicked(event)` — dedykowany hook z bazowej klasy
-  `Desklet.Desklet`, wywoływany przez Cinnamona TYLKO dla "prawdziwego"
-  kliknięcia (bez przekroczenia progu przeciągnięcia) i z pominięciem
-  prawoklika — dokładnie to, czego trzeba, bez ręcznego zarządzania
-  propagacją zdarzeń. Przy okazji to naturalnie rozwiązuje też przypadek
-  pustej karteczki, bo `on_desklet_clicked` odpala się dla kliknięcia
-  gdziekolwiek na `this.actor`, niezależnie od (pustego) rozmiaru
-  `_text`. Zweryfikowane end-to-end przez `xdotool` (symulacja
-  mousedown/mousemove/mouseup + odczyt stanu `_draggable` przez D-Bus
-  Eval): przeciąganie zmienia pozycję w `enabled-desklets`, prawoklik
-  otwiera menu bez wchodzenia w tryb edycji, klik na pustej karcie wciąż
-  wchodzi w edycję.
-  Uboczna obserwacja (nie wymaga akcji): natywna obsługa kliknięcia w
-  `Clutter.Text` (editable+selectable) sama łapie `button-press-event` w
-  obrębie własnego hit-boxa tekstu i nie przepuszcza go do D&D — więc przy
-  karteczce z długą treścią przeciąganie działa tylko z obszaru karty
-  POZA tekstem (marginesy), a kliknięcie w sam tekst nadal edytuje. To
-  standardowe zachowanie edytowalnego tekstu w Clutter, nie bug tego kodu.
+`karteczki@jkatnik/karteczki_markdown.js`, `render()` zwraca markup +
+pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
+`__podkreślenie__`, `~~przekreślenie~~`, `[tekst](url)`. Bez zagnieżdżania
+(jeden znacznik na fragment), bez nagłówków i list.
 
-- **Domyślna treść nowej karteczki: "Lorem ipsum"** (było puste `""`).
-  Zmiana w `bin/karteczki_common.py` (`DEFAULT_CONTENT`), test
-  zaktualizowany. Zweryfikowane przez `bin/karteczki-nowa` na żywo.
+- Świadomie nie ma `_kursywy_` przez pojedynczy podkreślnik — kolidowałaby
+  ze snake_case w treści i z `__podkreśleniem__`.
+- W JSON leży surowy Markdown; podgląd renderuje markup, tryb edycji
+  pokazuje surowe znaczniki (`set_use_markup(false)`).
+- Linki: styl `underline="single"` + `#1a5fb4` nadawany ręcznie, zamiast
+  pangowego `<a href>` — nie zależy od wersji Pango i od tego, czy Clutter
+  poda kolor linku z motywu.
+- Pozycje linków liczone w **bajtach** widocznego tekstu, bo
+  `Clutter.Text.coords_to_position()` zwraca indeks bajtowy (przy polskich
+  znakach różny od znakowego).
+- Kursywa: Caveat nie ma odmiany italic, Pango syntezuje pochylenie.
 
-- **Tło zmienione na `karteczka-bristol-3.png`** (395×158, dokładnie w tym
-  rozmiarze co karta — `CARD_WIDTH`/`CARD_HEIGHT` ustawione na 395×158,
-  renderowane 1:1, bez pomniejszania). Ten asset ma widoczną fakturę
-  papieru i cień naturalnie, bez kombinowania z kodem — usunięty więc
-  cały hack `boostTexture()`/unsharp mask z poprzedniej sesji (był
-  potrzebny tylko przy silnym, >8× pomniejszeniu starszych assetów;
-  przy renderowaniu 1:1 tylko psułby obraz).
-- **Zdiagnozowany „powrót" problemu z fokusem (2026-09-06, wieczór) — NIE
-  regres w kodzie.** Ustalone przez sprawdzenie na żywo (D-Bus Eval) w
-  reakcji na prawdziwe kliknięcie użytkownika: `on_desklet_clicked` w
-  ogóle się nie odpalał, `Main.modalCount` zostawał na 0 — zdarzenie
-  kliknięcia nie docierało do pulpitu Cinnamona w ogóle, nawet przy
-  kliknięciu w czyste tło pulpitu (nie samą karteczkę). Aktywnym oknem
-  wg WM cały czas zostawało „Guake!" (terminal), mimo że jego okno
-  siedziało poza widocznym obszarem ekranu (x znacznie poza szerokością
-  ekranu) — podejrzenie: Guake w trybie "schowany poza ekran zamiast
-  odmapowany" trzyma jakiś grab wejścia. Do zweryfikowania przez
-  użytkownika: czy przełączenie widoczności Guake (zwykle F12)
-  przywraca normalne klikanie w pulpit.
+### Aktualny model interakcji
 
-- **Font Caveat pobrany z Google Fonts i zainstalowany** (zmiana decyzji
-  z AGENTS.md — wcześniej "system dependency, instalacja ręczna
-  użytkownika", teraz zbundlowany w repo). Pliki `assets/fonts/Caveat-Regular.ttf`
-  i `Caveat-Bold.ttf` pobrane z `fonts.gstatic.com` (przez CSS API
-  `fonts.googleapis.com/css2?family=Caveat`, bo endpoint
-  `fonts.google.com/download` teraz zwraca HTML, nie zip), skopiowane do
-  `~/.local/share/fonts/`, odświeżone `fc-cache -f`. Uwaga: samo
-  `fc-cache` NIE wystarczyło dla już działającego procesu Cinnamona —
-  Pango/fontconfig cache'uje listę fontów w pamięci procesu przy starcie,
-  więc nowo zainstalowany font stał się widoczny dopiero po restarcie
-  powłoki (`global.reexec_self()` przez D-Bus Eval, odpowiednik Alt+F2
-  "r"). `desklet.js` już wcześniej używał `font_name: "Caveat 16"` — bez
-  zmian w kodzie, tylko instalacja czcionki.
+- **Dwuklik** lewym w karteczkę → tryb edycji (`on_desklet_clicked`
+  sprawdza `get_click_count() === 2`). Pojedynczy klik zostawiony D&D.
+- **Ctrl+klik** w link → `xdg-open`. Zwykły klik nie może tego robić: przy
+  dwukliku Clutter wysyła najpierw zdarzenie z `click_count === 1`, więc
+  wejście w edycję nad linkiem odpalałoby przeglądarkę.
+- **Prawoklik** → menu: „Kolor atramentu" (podmenu z kropką przy
+  aktywnym), „Usuń", „Nowa karteczka".
+- **Enter** → zapis i wyjście z edycji, **Escape** → anulowanie (przywraca
+  treść sprzed edycji), **klik poza kartą** → zapis i wyjście.
+- Poza edycją `_text` ma `reactive: false` — inaczej `Clutter.Text`
+  przechwytuje klik, zanim dojdzie do deskletu (i blokuje przeciąganie
+  karteczek z długą treścią).
+- Edytować można tylko jedną karteczkę naraz (`_startEditing` sprawdza
+  `_editing` pozostałych deskletów) — `Main.pushModal` robi pełny grab
+  X11, dwa naraz zablokowałyby wejście.
+- Przeciągnięcie zapisuje pozycję do JSON *i* do `enabled-desklets`;
+  pozycja odtwarzana jest z gsettings, pole `position` w JSON jest tylko
+  kopią informacyjną.
 
-## Wejście brakujące od użytkownika
+### Znane niespójności (drobne, świadome)
 
-- **Dokładny odcień "niebieskiego atramentu"** — do czasu decyzji przyjęty
-  domyślny `#1a3fae`.
+- Pola `background` i `font` w JSON notatki są zapisywane, ale desklet ich
+  nie czyta (ścieżka tła i font są stałe w kodzie) — ożywia je Faza 6.
+- `assets/*.png` to źródła, `karteczki@jkatnik/img/*.png` to kopie
+  ładowane przez desklet — kopiowane ręcznie, nic tego nie synchronizuje.
+- Cinnamon przy restarcie powłoki przepisuje `enabled-desklets` ze stanu w
+  pamięci. Zaobserwowane raz (2026-09-07): usunięty wpis wrócił po
+  `reexec_self()` jako sierota (bez pliku JSON), bo żywa instancja nie
+  została wyładowana. Powtórne `karteczki-usun` sprząta to poprawnie;
+  gdyby wracało regularnie — usuwać desklet przez API Cinnamona zamiast
+  samego zapisu gsettings.
 
-## Struktura plików docelowych
+### Pułapki potwierdzone eksperymentalnie (nie powtarzać)
+
+1. **Błąd w `desklet.js` potrafi ubić całego Cinnamona (SIGSEGV), nie
+   tylko rzucić wyjątkiem.** Zdarzyło się dwukrotnie (`Clutter.Color`
+   nie ma metody instancyjnej `from_string` — to statyczna funkcja
+   zwracająca `[ok, color]`). Każdą zmianę sprawdzać przez `gjs -c` przed
+   wpisem do żywego `enabled-desklets`; ratunek: `cinnamon --replace`.
+2. **Kliknięcie w pulpit nie przenosi fokusu klawiatury X11** na powłokę
+   (okno typu `_NET_WM_WINDOW_TYPE_DESKTOP`) — bez `Main.pushModal()`
+   wpisywane znaki lecą do ostatnio aktywnego okna, mimo że Clutter
+   pokazuje poprawny fokus. `pushModal` trzeba świadomie zwalniać
+   (`_stopEditing`), inaczej sesja zostaje zablokowana na edycji.
+3. **CSS `background-image` na `St.Bin` nie renderuje się wiarygodnie** —
+   działa wzorzec GdkPixbuf → `Clutter.Image` → `Clutter.Actor`
+   (skopiowany z `notes@schorschii`).
+4. **`Clutter.EVENT_STOP` na dziecku zabija wbudowane D&D i menu** —
+   `imports.ui.dnd` i `_onButtonReleaseEvent` nasłuchują na `this.actor`,
+   czyli przodku. Zamiast własnego handlera używać hooka
+   `on_desklet_clicked(event)`.
+5. **Nowo zainstalowany font nie jest widoczny dla działającego
+   Cinnamona** — Pango cache'uje listę przy starcie; potrzebny restart
+   powłoki (`global.reexec_self()` przez D-Bus Eval).
+6. **Guake schowany poza ekranem potrafi zabrać wejście pulpitowi** —
+   objaw „klikanie w karteczkę przestało działać" bez żadnego regresu w
+   kodzie (`on_desklet_clicked` w ogóle się nie odpala). Sprawdzić F12.
+7. Silne pomniejszanie assetu (>8×) spłaszcza fakturę papieru —
+   dlatego tło ma dziś dokładnie rozmiar karty. Poprzednia proteza
+   (`boostTexture()`, unsharp mask) usunięta jako zbędna.
+
+## Struktura plików (stan faktyczny)
 
 ```
 karteczki@jkatnik/                          # katalog desletu
 ├── metadata.json
 ├── desklet.js
-├── settings-schema.json                    # (jeśli potrzebne ustawienia globalne)
-└── icon.png
+├── karteczki_markdown.js                   # Markdown → Pango markup + pozycje linków
+└── img/karteczka-bristol-{3,4}.png         # kopie assetów, ładowane w runtime
+
+assets/                                     # źródła grafik i fontów
+├── karteczka-bristol{,-2,-3,-4}.png
+└── fonts/Caveat-{Regular,Bold}.ttf
 
 bin/
-└── karteczki-nowa                          # skrypt: tworzy JSON + wpis gsettings
+├── karteczki_common.py                     # CRUD notatek + gsettings
+├── karteczki-nowa                          # tworzy JSON + wpis gsettings
+└── karteczki-usun <instance_id>            # kasuje JSON + wpis gsettings
+
+tests/
+├── test_karteczki_common.py                # unittest, gsettings zamockowane
+└── test_desklet_json.gjs                   # self-check logiki GJS
 
 ~/.local/share/nemo/actions/
 └── dodaj-karteczke.nemo_action             # wpis menu kontekstowego pulpitu
 
 ~/.local/share/karteczki/
-└── <uuid>.json                             # dane jednej karteczki
+├── <uuid>.json                             # dane jednej karteczki
+└── instances.json                          # mapowanie instance_id → uuid
 ```
+
+Nie powstały (i nie są potrzebne): `settings-schema.json`, `icon.png`.
 
 ## Schemat pliku karteczki (JSON)
 
@@ -209,55 +171,45 @@ bin/
 {
   "id": "uuid-v4",
   "content": "tekst w **Markdown**",
-  "color": "#1a3fae",
+  "color": "#112971",
   "font": "Caveat",
-  "background": "sticky-yellow.png",
+  "background": "karteczka-bristol.png",
   "position": { "x": 100, "y": 100 },
   "created_at": "2026-09-06T12:00:00+02:00",
   "modified_at": "2026-09-06T12:00:00+02:00"
 }
 ```
 
+Pola `font` i `background` są dziś tylko zapisywane — desklet ich nie
+czyta (font i ścieżka tła są stałe w `desklet.js`).
+
 ## Fazy
 
-### Faza 0 — rozpoznanie środowiska (rychło, przed kodem)
-- Dodać dowolny istniejący desklet przez `cinnamon-settings desklets`,
-  potwierdzić realny format wpisu w `gsettings get org.cinnamon
-  enabled-desklets`, zapisać przykład w AGENTS.md.
-- Sprawdzić, czy Nemo w tej instalacji Cinnamona faktycznie obsługuje
-  `.nemo_action` na tle pulpitu (nie tylko na plikach) — jeśli pulpit nie
-  jest renderowany przez Nemo tylko przez coś innego, trzeba to
-  zweryfikować zanim zaprojektujemy krok 2.
+### ✅ Faza 0 — rozpoznanie środowiska
+Format `enabled-desklets` potwierdzony (`UUID:instance_id:X:Y`), Nemo
+obsługuje `.nemo_action` na tle pulpitu — sprawdzone kliknięciem.
 
-### Faza 1 — szkielet desletu
-- `metadata.json` z `multiInstance: true`, `decoration: false`.
-- `desklet.js`: wczytanie JSON po `instance_id` → placeholder tła
-  (jednolity kolor) + `Clutter.Text` z treścią, font Caveat, kolor
-  atramentu.
-- Ręczne dodanie 1-2 instancji przez cinnamon-settings, weryfikacja że
-  każda czyta swój plik.
+### ✅ Faza 1 — szkielet desletu
+`metadata.json` (`max-instances: -1`, `prevent-decorations: true` — to
+realne nazwy kluczy, nie planowane `multiInstance`/`decoration`),
+`desklet.js` czyta JSON po `instance_id` przez `instances.json`.
 
-### Faza 2 — trwałość i CRUD
-- Skrypt `karteczki-nowa`: generuje UUID, zapisuje domyślny JSON,
-  dopisuje wpis do `enabled-desklets`.
-- Zapis pozycji do JSON po zakończeniu przeciągania (hook na sygnał
-  end-drag desletu).
-- Zapis treści do JSON po wyjściu z trybu edycji (blur/Escape), z
-  aktualizacją `modified_at`.
+### ✅ Faza 2 — trwałość i CRUD
+`karteczki-nowa` / `karteczki-usun` + `karteczki_common.py`, zapis pozycji
+na `drag-end`, zapis treści przy wyjściu z edycji (Enter / klik poza
+kartą), z aktualizacją `modified_at`.
 
-### Faza 3 — menu kontekstowe
-- Nadpisanie/rozszerzenie menu prawoklika desletu o pozycje "usuń" (kasuje
-  plik JSON + usuwa wpis z `enabled-desklets`) i "nowa karteczka" (wywołuje
-  `karteczki-nowa`).
-- Wpis Nemo `dodaj-karteczke.nemo_action` wywołujący ten sam skrypt.
+### ✅ Faza 3 — menu kontekstowe
+Pozycje „Usuń" i „Nowa karteczka" w menu prawoklika desletu, ten sam
+skrypt podpięty pod akcję Nemo.
 
-### Faza 4 — wygląd docelowy
-- ✅ Asset gotowy: `assets/karteczka-bristol.png`. Pozostaje: wpięcie go
-  jako `background-image` w desklecie, ewentualnie 9-slice jeśli desklet
-  ma być skalowalny bez zniekształcania rogów.
-- Instrukcja instalacji fontu Caveat (dokumentacja, nie kod).
+### ✅ Faza 4 — wygląd docelowy
+Tło `karteczka-bristol-4.png` renderowane 1:1 w rozmiarze karty (350×100)
+przez `Clutter.Image` — 9-slice niepotrzebny, bo karta ma stały rozmiar.
+Font Caveat zbundlowany w `assets/fonts/` i zainstalowany (zmiana decyzji
+z AGENTS.md, gdzie był traktowany jako zależność systemowa).
 
-### Faza 5 — porządki
+### ⬜ Faza 5 — porządki (jedyne, co zostało)
 - Krótki `README.md` z instrukcją instalacji (symlink do
   `~/.local/share/cinnamon/desklets/`, instalacja `.nemo_action`,
   instalacja fontu).
@@ -265,10 +217,55 @@ bin/
   przeciągnij → nowa karteczka z menu → usuń → restart Cinnamona
   (`Alt+F2`, `r`) → karteczki wracają na miejsce.
 
+### ⬜ Faza 6 — wybór tła i czcionki (zaprojektowane, nie zaimplementowane)
+
+Obie rzeczy działają tak samo jak gotowy już wybór koloru atramentu:
+podmenu w menu kontekstowym → zapis pola w JSON karteczki → natychmiastowe
+przerysowanie. Pola `background` i `font` już są w schemacie, dziś martwe.
+
+**Tło (`background`)**
+
+- W JSON sama nazwa pliku, np. `"karteczka-bristol-4.png"`; katalog stały
+  (`karteczki@jkatnik/img/`), żeby JSON nie zawierał ścieżek absolutnych i
+  przetrwał przeniesienie repo.
+- **Rozmiar karty = rozmiar pliku PNG** (`pixbuf.get_width/height`), a nie
+  stałe `CARD_WIDTH`/`CARD_HEIGHT`. Konwencja z Fazy 4 („asset renderowany
+  1:1") zostaje, tylko przestaje być zaszyta w kodzie — inne tło może
+  znaczyć inny format karteczki. Stałe zostają wyłącznie jako wymiar
+  awaryjny, gdy pliku nie ma.
+- Wymagania dla assetu: PNG z kanałem alfa (cień i nierówne brzegi
+  wtopione w przezroczystość), dokładnie w docelowym rozmiarze ekranowym.
+  Rozsądne warianty do przygotowania: `350×100` (dzisiejszy pasek),
+  `350×200` (wysoka), `200×200` (kwadrat). Powyżej ~2× skalowania faktura
+  papieru się spłaszcza — patrz pułapka 7.
+- Menu: podmenu „Tło" listujące `img/*.png` (`Gio.File.enumerate_children`),
+  etykieta = nazwa bez rozszerzenia, kropka przy aktywnym.
+- Po zmianie: `_container.set_size(w, h)`, podmiana aktora obrazu,
+  `_text.set_width(w - padding)`. Brak pliku → tło domyślne, bez wyjątku.
+- **Otwarte:** czy pionowy padding tekstu (dziś `bottom: 15`, dobrany pod
+  jeden konkretny obrazek) ma być polem assetu — najprościej: konwencja,
+  że papier na PNG kończy się w 85% wysokości, więc wzór działa dla
+  każdego tła.
+
+**Czcionka (`font`)**
+
+- W JSON pełny opis Pango w jednym polu: `"Caveat 20"` (rodzina + rozmiar),
+  bo dokładnie to przyjmuje `Clutter.Text.font_name` — bez rozbijania na
+  dwa pola i sklejania w kodzie.
+- Menu, wariant rekomendowany (lazy): podmenu „Rozmiar tekstu" — Mała 16 /
+  Średnia 20 / Duża 24, rodzina zmieniana ręcznie w JSON. Pokrywa realną
+  potrzebę („nie mieści się / za drobne") jednym podmenu.
+- Wariant szerszy, jeśli rodzina ma być wybierana z UI: lista ograniczona
+  do fontów zbundlowanych w `assets/fonts/` (dziś: Caveat). Enumerowanie
+  fontów systemowych przez `Pango.FontMap.list_families()` odpada — setki
+  pozycji w menu kontekstowym karteczki.
+- Uwaga z Fazy 4: nowy plik `.ttf` wymaga restartu Cinnamona, żeby Pango
+  go zobaczył. Instalacja fontu zostaje krokiem README, nie runtime'em.
+
 ## Poza zakresem (patrz AGENTS.md → YAGNI)
 
-Renderowanie formatowania Markdown, zmiana koloru/czcionki/tła z UI,
-paczka instalacyjna .deb, synchronizacja/chmura.
+Zagnieżdżone formatowanie Markdown, nagłówki i listy, color picker zamiast
+czterech kolorów, paczka instalacyjna .deb, synchronizacja/chmura.
 
 ## Referencje zebrane podczas researchu
 

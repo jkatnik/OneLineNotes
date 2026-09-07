@@ -37,10 +37,14 @@ tych mechanizmów.
   we własnym gsettings, ale zapisujemy `position` też do pliku JSON, żeby
   backup/restore samych plików JSON odtwarzał układ pulpitu bez zależności
   od stanu gsettings.
-- **Treść w Markdown, renderowana jako zwykły tekst.** Przechowywanie w MD
-  ułatwia edycję zewnętrzną i przyszłe formatowanie, ale samo
-  renderowanie Markdown → formatowanie w St/Clutter to osobny, większy
-  temat — nie w zakresie pierwszej wersji (YAGNI, patrz PLAN.md).
+- **Treść w Markdown, renderowana przez Pango markup** (decyzja zmieniona
+  2026-09-07 — wcześniej tylko surowy tekst). `karteczki_markdown.js`
+  zamienia `**pogrubienie**`, `*kursywę*`, `__podkreślenie__`,
+  `~~przekreślenie~~` i `[tekst](url)` na markup (`<b>`, `<i>`, `<u>`,
+  `<s>`, `<span>`), który `Clutter.Text` renderuje natywnie — bez
+  parsera Markdown i bez budowania drzewa aktorów St. W JSON zapisywany
+  jest zawsze surowy Markdown; tryb edycji pokazuje właśnie jego.
+  Zagnieżdżanie znaczników, nagłówki, listy i cytaty: nadal poza zakresem.
 - **Font Caveat zbundlowany w repo (`assets/fonts/`), instalowany do
   `~/.local/share/fonts/` + `fc-cache`.** Decyzja zmieniona względem
   pierwotnego planu (miał być czystą zależnością systemową, ręcznie
@@ -60,11 +64,12 @@ tych mechanizmów.
 
 ## Czego NIE robimy (świadomie, YAGNI)
 
-- Brak UI do zmiany koloru/czcionki/tła z poziomu karteczki — pola te są
-  w schemacie JSON (na przyszłość), ale w pierwszej wersji każda nowa
-  karteczka dostaje te same wartości domyślne na sztywno.
-- Brak renderowania formatowania Markdown (pogrubienia, list) — tylko
-  edytowalny tekst.
+- Kolor atramentu wybierany z menu kontekstowego (4 kolory na stałe), ale
+  bez palety/color pickera. Wybór tła i czcionki: zaprojektowany w PLAN.md
+  (Faza 6), jeszcze nie zaimplementowany — do tego czasu pola `background`
+  i `font` w JSON są zapisywane, ale przez desklet ignorowane.
+- Brak zagnieżdżonego formatowania Markdown, nagłówków, list i cytatów —
+  tylko pogrubienie, kursywa, podkreślenie, przekreślenie i link.
 - Brak własnego mechanizmu przeciągania — używamy wbudowanego drag
   desklecików Cinnamona.
 - Brak instalatora/paczki .deb — projekt uruchamiany z katalogu
