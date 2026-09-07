@@ -1,8 +1,9 @@
 [Nemo Action]
-Name=Add note
-Name[pl]=Dodaj karteczkę
+Name=Add OneLineNote
+Name[pl]=Dodaj OneLineNote
 Comment=Creates a new sticky note on the desktop
 Comment[pl]=Tworzy nową karteczkę samoprzylepną na pulpicie
+Icon-Name=notes
 Exec=__ONELINENOTES__/bin/note-new
 Selection=none
 Extensions=any

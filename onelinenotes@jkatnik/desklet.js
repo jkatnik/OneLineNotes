@@ -225,31 +225,26 @@ function fontSpec(font) {
 // skasowanie akcji przez użytkownika ma zostać skasowaniem, nie zaproszeniem
 // do odtworzenia jej przy każdym starcie.
 function installNemoAction() {
-    let cel = GLib.get_home_dir() + "/.local/share/nemo/actions/add-note.nemo_action";
-    let obecna = readText(cel);
-
-    if (obecna !== null) {
-        // Akcja jest — ale po przeniesieniu repo jej Exec może wskazywać
-        // nieistniejący skrypt. Taki martwy wpis naprawiamy, bo inaczej
-        // pozycja w menu pulpitu po cichu przestaje działać.
-        let exec = /^Exec=(\S+)/m.exec(obecna);
-        if (exec && GLib.file_test(exec[1], GLib.FileTest.EXISTS)) {
-            getSettings().nemoActionInstalled = true;
-            saveSettings();
-            return;
-        }
-    } else if (getSettings().nemoActionInstalled) {
-        // Zainstalowaliśmy ją kiedyś, a teraz jej nie ma: użytkownik ją
-        // skasował. Nie wracamy z nią przy każdym starcie.
-        return;
-    }
-
     let wzorzec = readText(DESKLET_ROOT + "/add-note.nemo_action");
     if (!wzorzec) return;
 
+    let cel = GLib.get_home_dir() + "/.local/share/nemo/actions/add-note.nemo_action";
+    let oczekiwana = wzorzec.replace(/__ONELINENOTES__/g, DESKLET_ROOT);
+    let obecna = readText(cel);
+
+    if (obecna === oczekiwana) return;
+
+    // Brak pliku po naszej instalacji = użytkownik go skasował. Nie wracamy
+    // z akcją przy każdym starcie.
+    if (obecna === null && getSettings().nemoActionInstalled) return;
+
+    // Każda inna różnica (zmieniona ścieżka po przeniesieniu repo, nowa nazwa
+    // albo ikona w kolejnej wersji xleta) to nieaktualny wpis — nadpisujemy,
+    // bo inaczej pozycja w menu pulpitu po cichu przestaje działać albo
+    // zostaje ze starym opisem.
     GLib.mkdir_with_parents(GLib.get_home_dir() + "/.local/share/nemo/actions", 0o755);
-    GLib.file_set_contents(cel, wzorzec.replace(/__ONELINENOTES__/g, DESKLET_ROOT));
-    global.log(UUID + ": " + (obecna === null ? "zainstalowano" : "naprawiono") + " akcję Nemo w " + cel);
+    GLib.file_set_contents(cel, oczekiwana);
+    global.log(UUID + ": " + (obecna === null ? "zainstalowano" : "zaktualizowano") + " akcję Nemo w " + cel);
     getSettings().nemoActionInstalled = true;
     saveSettings();
 }

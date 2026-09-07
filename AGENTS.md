@@ -106,8 +106,9 @@ tych mechanizmów.
   tylko pogrubienie, kursywa, podkreślenie, przekreślenie i link.
 - Brak własnego mechanizmu przeciągania — używamy wbudowanego drag
   desklecików Cinnamona.
-- Brak instalatora/paczki .deb — projekt uruchamiany z katalogu
-  deweloperskiego przez symlink do `~/.local/share/cinnamon/desklets/`.
+- Brak paczki .deb — instalacja to `install.sh` (curl | bash, wszystko w
+  `$HOME`) albo symlink z katalogu deweloperskiego do
+  `~/.local/share/cinnamon/desklets/`.
   Paczkę dla Cinnamon Spices buduje `tools/build-spice` — repo zostaje w
   wygodnym układzie, a wymagany przez Spices powstaje na żądanie (i jest
   sprawdzany pod kątem ich wymogów).

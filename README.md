@@ -12,7 +12,42 @@ Design notes and working agreements live in [PLAN.md](PLAN.md) and
 
 ## Installation
 
-The desklet runs straight from the development directory; there is no .deb.
+### One command
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jkatnik/oneLineNotes/main/install.sh | bash
+```
+
+or, with wget:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/jkatnik/oneLineNotes/main/install.sh | bash
+```
+
+Piping a script from the internet straight into a shell is convenient and
+worth a moment's thought — if you would rather read it first (a good habit,
+not just here):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jkatnik/oneLineNotes/main/install.sh -o install.sh
+less install.sh && bash install.sh
+```
+
+The installer needs no root and touches nothing outside `$HOME`: it puts the
+desklet in `~/.local/share/cinnamon/desklets/`, the bundled fonts in
+`~/.local/share/fonts/` and the compiled translations in
+`~/.local/share/locale/`. If the desklet directory is a symlink — a
+development checkout — it leaves it alone instead of replacing your working
+copy with a snapshot. Running it from a clone (`./install.sh`) installs from
+that checkout rather than downloading anything.
+
+Afterwards restart the Cinnamon shell (`Alt+F2`, `r`, Enter) and add the
+desklet from *System Settings → Desklets*, or right-click the desktop and pick
+*Add OneLineNote*. The script prints the uninstall commands at the end.
+
+### Manual installation
+
+The desklet also runs straight from the development directory; there is no .deb.
 
 ```bash
 git clone <repo> onelinenotes      # any path works

@@ -430,12 +430,18 @@ Zrobione:
   katalogu xleta.
 - **Akcja Nemo zakłada się sama** przy pierwszym starcie (decyzja użytkownika
   z 2026-09-07): wzorzec `add-note.nemo_action` leży w katalogu xleta,
-  `__ONELINENOTES__` jest podmieniane na `DESKLET_ROOT`. Skasowanie akcji przez
-  użytkownika jest respektowane (flaga `nemoActionInstalled` w
-  `settings.json`), ale wpis z martwym `Exec` zostaje naprawiony — inaczej po
-  przeniesieniu repo pozycja w menu pulpitu po cichu przestaje działać. Tak
-  właśnie było po przeniesieniu `bin/`: akcja z 6 września wskazywała starą
-  ścieżkę, naprawione automatycznie przy starcie.
+  `__ONELINENOTES__` jest podmieniane na `DESKLET_ROOT`. Desklet porównuje
+  zainstalowany plik z wzorcem i **aktualizuje każdą różnicę** — inaczej
+  zmiana ścieżki (przeniesienie repo), nazwy czy ikony w nowej wersji xleta
+  nigdy by nie dotarła, a pozycja w menu pulpitu po cichu przestawałaby
+  działać. Zdarzyło się dokładnie to po przeniesieniu `bin/`. Wyjątek: brak
+  pliku przy ustawionej fladze `nemoActionInstalled` oznacza, że użytkownik
+  skasował akcję świadomie — wtedy z nią nie wracamy.
+- **`install.sh`** — instalacja jednym poleceniem (`curl … | bash`), opisana
+  w README razem z wariantem „najpierw przeczytaj skrypt". Działa bez roota,
+  wyłącznie w `$HOME`; uruchomiony z klona instaluje z niego zamiast pobierać.
+  Katalog xleta będący symlinkiem (setup deweloperski) zostawia nietknięty,
+  żeby nie podmienić czyjejś kopii roboczej na migawkę.
 - `info.json` (`{"author": "jkatnik"}`), `icon.png` (96×96, wygenerowana z
   assetu karteczki), `author` i `last-edited` w `metadata.json`.
 - `tools/build-spice` — buduje układ wymagany przez Spices do `build/` i
