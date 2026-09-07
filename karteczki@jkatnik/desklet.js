@@ -283,7 +283,17 @@ MyDesklet.prototype = {
         let rendered = Markdown.render(this.note.content || "");
         this._links = rendered.links;
         this._text.set_markup(rendered.markup);
-        this._text.set_color(this._hexToClutterColor(this.note.color || DEFAULT_COLOR));
+        this._applyInkColor(this.note.color || DEFAULT_COLOR);
+    },
+
+    _applyInkColor: function (hex) {
+        let ink = this._hexToClutterColor(hex);
+        this._text.set_color(ink);
+        // Domyślne tło zaznaczenia w Clutterze jest w tym samym, ciemnym
+        // odcieniu co atrament — zaznaczony tekst robił się nieczytelny.
+        // Tło zaznaczenia = kolor atramentu, sam tekst na biało.
+        this._text.set_selection_color(ink);
+        this._text.set_selected_text_color(new Clutter.Color({ red: 255, green: 255, blue: 255, alpha: 255 }));
     },
 
     _linkAtEvent: function (event) {
@@ -395,7 +405,7 @@ MyDesklet.prototype = {
             Lang.bind(this, function (hex) {
                 this.note.color = hex;
                 this._saveNote();
-                this._text.set_color(this._hexToClutterColor(hex));
+                this._applyInkColor(hex);
             }));
 
         this._addChoiceMenu("Tło",
