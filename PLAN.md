@@ -17,12 +17,13 @@
 
 ## Status (ostatnia aktualizacja: 2026-09-07)
 
-Fazy 0-7 i 11 zrobione i zweryfikowane na żywym Cinnamonie; zostają fazy
-8-10 (i18n, licencja, publikacja w Spices).
+Fazy 0-8 i 11 zrobione i zweryfikowane na żywym Cinnamonie; zostają fazy
+9-10 (licencja GPL-3.0, publikacja w Spices).
 Ostatnia sesja (2026-09-07) dołożyła formatowanie Markdown, wybór koloru
 atramentu, tła i rozmiaru tekstu, pozycjonowanie nowej karteczki w miejscu
-menu, kursor-rączkę nad linkiem, README, ściągawkę „Formatowanie" i losowy
-obrót karteczek.
+menu, kursor-rączkę nad linkiem, README, ściągawkę „Formatowanie", losowy
+obrót, kotwiczenie przy krawędziach monitora, i18n z wyborem języka z menu,
+ikony w menu i potwierdzanie usuwania.
 
 - ✅ Faza 0 — format `enabled-desklets` potwierdzony eksperymentalnie:
   `UUID:instance_id:X:Y`. Akcja Nemo na tle pulpitu **zweryfikowana
@@ -42,8 +43,9 @@ obrót karteczek.
 - ✅ Faza 5 — `README.md` z instalacją i ręcznym scenariuszem testowym.
 - ✅ Faza 6 — wybór tła i rozmiaru tekstu z menu (pola `background`/`font`).
 - ✅ Faza 7 — ściągawka „Formatowanie" w oknie modalnym.
+- ✅ Faza 8 — i18n (gettext + wybór języka z menu, `po/pl.po`).
 - ✅ Faza 11 — losowy obrót karteczek ±3°.
-- ⬜ Fazy 8-10 — i18n, licencja GPL-3.0, publikacja w Spices.
+- ⬜ Fazy 9-10 — licencja GPL-3.0, publikacja w Spices.
 
 ### Aktualne parametry wyglądu (`desklet.js`)
 
@@ -94,9 +96,18 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
   skryptowi: `karteczki-nowa [x y]`. Akcja Nemo nie ma jak podać
   współrzędnych, więc skrypt bez argumentów pyta o pozycję kursora przez
   Gdk. Bez argumentów i bez Gdk zostaje stara kaskada od `BASE_X/BASE_Y`.
-- **Prawoklik** → menu: podmenu „Kolor atramentu", „Tło" i „Rozmiar
-  tekstu" (każde z kropką przy aktywnej pozycji), „Formatowanie"
-  (okno ze ściągawką Markdown), „Usuń", „Nowa karteczka".
+- **Prawoklik** → menu z ikonami: podmenu „Kolor atramentu", „Tło",
+  „Rozmiar tekstu" i „Język" (każde z kropką przy aktywnej pozycji),
+  „Formatowanie" (okno ze ściągawką Markdown), „Usuń", „Nowa karteczka".
+  Ikona podmenu musi siedzieć **w jednym aktorze razem z etykietą**:
+  `PopupSubMenuMenuItem` nie przyjmuje ikony, a dołożenie jej jako osobnego
+  aktora dokłada pozycji kolumnę — szerokości kolumn są wspólne dla całego
+  menu, więc etykiety podmenu robiły się zerowej szerokości.
+- **„Usuń" pyta o potwierdzenie** (`ModalDialog` z czerwonym
+  `destructive_action`) z checkboxem „Nie pytaj ponownie". Zaznaczenie
+  zapisuje się dopiero po potwierdzeniu usunięcia — checkbox + „Anuluj"
+  nie wyłącza pytania. Flaga `skipRemoveConfirmation` leży w
+  `settings.json`, więc dotyczy wszystkich karteczek.
 - **Enter** → zapis i wyjście z edycji, **Escape** → anulowanie (przywraca
   treść sprzed edycji), **klik poza kartą** → zapis i wyjście.
 - Poza edycją `_text` ma `reactive: false` — inaczej `Clutter.Text`
@@ -186,6 +197,8 @@ karteczki@jkatnik/                          # katalog desletu
 ├── desklet.js
 ├── karteczki_markdown.js                   # Markdown → Pango markup + pozycje linków
 ├── karteczki_layout.js                     # kotwiczenie przy krawędziach ekranu
+├── karteczki_i18n.js                       # parser .po + wybór języka
+├── po/{karteczki@jkatnik.pot,pl.po}        # tłumaczenia
 └── img/karteczka-bristol-{3,4}.png         # kopie assetów, ładowane w runtime
 
 assets/                                     # źródła grafik i fontów
@@ -209,7 +222,8 @@ dodaj-karteczke.nemo_action                 # wzorzec z __KARTECZKI__ zamiast ś
 
 ~/.local/share/karteczki/
 ├── <uuid>.json                             # dane jednej karteczki
-└── instances.json                          # mapowanie instance_id → uuid
+├── instances.json                          # mapowanie instance_id → uuid
+└── settings.json                           # ustawienia wspólne: język, potwierdzanie usuwania
 ```
 
 Nie powstały (i nie są potrzebne): `settings-schema.json`, `icon.png`.
@@ -326,9 +340,22 @@ sudo), więc `.pot` powstaje przez `xgettext`, a dwa ciągi z `metadata.json`
 są w nim dopisane ręcznie. Do PR-a w Spices i tak trzeba przejechać
 `./cinnamon-spices-makepot UUID` z ich repozytorium.
 
-Uwaga: sesja na tej maszynie ma `LANGUAGE=en_US`, więc interfejs desletu
-jest tu angielski. Polskie tłumaczenie sprawdzone przez `dgettext` przy
-`LANGUAGE=pl` — wchodzi poprawnie.
+**Wybór języka z menu** (`karteczki_i18n.js`), niezależny od locale sesji.
+gettext tłumaczy wyłącznie na język procesu, a Cinnamon to jeden proces dla
+całego pulpitu — wymuszenie przez `setlocale` przestawiłoby też panel i menu
+systemowe. Dlatego przy wymuszonym języku `.po` czytany jest wprost (parser
+w module, ~40 linii, bez form mnogich — w desklecie nie występują), a przy
+„języku systemu" działa normalny `dgettext`. Pliki `.po` pozostają jedynym
+źródłem tłumaczeń, więc wymóg Spices jest spełniony.
+
+Wybór jest wspólny dla wszystkich karteczek: `settings.json` obok notatek,
+a przemalowanie idzie po żywych instancjach w tym samym procesie
+(`Main.deskletContainer` → `_applyLanguage`), więc działa bez restartu
+powłoki. Etykiety menu musiały przy okazji przestać być stałymi modułu i
+stać się funkcjami — inaczej zostałyby w języku z chwili załadowania.
+
+Uwaga: sesja na tej maszynie ma `LANGUAGE=en_US`, więc „język systemu" daje
+tu angielski; polski wybiera się z menu.
 
 ### Poprzedni plan tej fazy (dla porządku)
 

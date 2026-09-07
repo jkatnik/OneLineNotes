@@ -53,7 +53,13 @@ Pierwsza karteczka: prawoklik na pulpicie → „Dodaj karteczkę", albo
 | Klik poza karteczką | zapis i wyjście z edycji |
 | Przeciągnięcie | zmiana pozycji (zapisywana od razu) |
 | Ctrl+klik w link | otwarcie w przeglądarce (`xdg-open`) |
-| Prawoklik | menu: kolor atramentu, tło, rozmiar tekstu, formatowanie, usuń, nowa karteczka |
+| Prawoklik | menu: kolor atramentu, tło, rozmiar tekstu, język, formatowanie, usuń, nowa karteczka |
+
+„Usuń" pyta o potwierdzenie; checkbox **Nie pytaj ponownie** wyłącza pytanie
+na stałe (zapisywane w `settings.json`, wspólne dla wszystkich karteczek).
+Zaznaczenie go i kliknięcie „Anuluj" nic nie zmienia — liczy się dopiero
+potwierdzone usunięcie. Żeby przywrócić pytanie, usuń z pliku pole
+`skipRemoveConfirmation`.
 
 Nowa karteczka pojawia się tam, gdzie rozwinięto menu kontekstowe.
 
@@ -99,11 +105,19 @@ cytatów. W pliku JSON zapisywany jest zawsze surowy Markdown. Tę samą
 ## Tłumaczenia
 
 Interfejs jest po angielsku, tłumaczenia leżą w `karteczki@jkatnik/po/`
-(dziś: `pl.po`). Desklet szuka ich w `~/.local/share/locale`, więc po każdej
-zmianie `.po` trzeba przebudować `.mo` — pętla z kroku 3 instalacji.
+(dziś: `pl.po`).
 
-Język bierze się z ustawień sesji (`LANGUAGE`/`LANG`), nie z osobnej opcji
-desletu: przy `en_US` menu jest angielskie, przy `pl_PL` polskie.
+Język wybiera się w menu kontekstowym karteczki („Język"): *Język systemu*
+bierze go z sesji (`LANGUAGE`/`LANG`) przez gettext, a konkretny język można
+wymusić niezależnie od ustawień systemu. Wybór jest wspólny dla wszystkich
+karteczek — zapisuje się w `~/.local/share/karteczki/settings.json` i
+przemalowuje je od razu, bez restartu powłoki.
+
+Przy „języku systemu" tłumaczenia czyta gettext z `~/.local/share/locale`,
+więc po każdej zmianie `.po` trzeba przebudować `.mo` (pętla z kroku 3
+instalacji). Wymuszony język czyta plik `.po` wprost z katalogu desletu —
+gettext nie potrafi tłumaczyć na język inny niż locale procesu, a proces jest
+jeden dla całego pulpitu.
 
 Po dopisaniu nowego ciągu w kodzie zaktualizuj szablon i tłumaczenia:
 

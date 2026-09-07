@@ -4,6 +4,7 @@
 imports.searchPath.unshift("/home/jkatnik/code/linux/karteczki/karteczki@jkatnik");
 const Markdown = imports.karteczki_markdown;
 const Layout = imports.karteczki_layout;
+const I18n = imports.karteczki_i18n;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
@@ -157,5 +158,41 @@ assert(Layout.monitorFor(null, 3000, 500, KARTA_W, KARTA_H, [LAPTOP, DUZY], 0) =
     "bez kotwicy monitor ustalany po położeniu karty");
 assert(Layout.monitorFor(null, 9000, 9000, KARTA_W, KARTA_H, [LAPTOP, DUZY], 0) === LAPTOP,
     "karta poza wszystkimi monitorami spada na monitor główny");
+
+// --- wybór języka: parser .po ---
+
+let po = I18n.parsePo([
+    '# komentarz tłumacza',
+    'msgid ""',
+    'msgstr ""',
+    '"Content-Type: text/plain; charset=UTF-8\\n"',
+    '',
+    'msgid "Remove"',
+    'msgstr "Usuń"',
+    '',
+    '#: desklet.js:1',
+    'msgid "Markers do not nest.\\nCtrl+click opens a link."',
+    'msgstr "Znaczniki się nie zagnieżdżają.\\nCtrl+klik otwiera link."',
+    '',
+    'msgid "Long one"',
+    'msgstr ""',
+    '"pierwsza część "',
+    '"i druga"',
+    '',
+    'msgid "Nieprzetłumaczone"',
+    'msgstr ""',
+].join("\n"));
+
+assert(po["Remove"] === "Usuń", "prosty wpis .po");
+assert(po[""] === undefined, "nagłówek .po nie trafia do tłumaczeń");
+assert(po["Markers do not nest.\nCtrl+click opens a link."] ===
+    "Znaczniki się nie zagnieżdżają.\nCtrl+klik otwiera link.", "sekwencja \\n rozwinięta");
+assert(po["Long one"] === "pierwsza część i druga", "msgstr sklejony z kilku linii");
+assert(po["Nieprzetłumaczone"] === undefined, "pusty msgstr pomijany (zostaje msgid)");
+
+assert(I18n.availableLanguages(["pl.po", "de.po", "karteczki@jkatnik.pot", "readme.txt"]).join(",") === "de,pl",
+    "lista języków tylko z plików .po, posortowana");
+assert(I18n.languageName("pl") === "Polski" && I18n.languageName("xx") === "xx",
+    "nazwa języka własna, nieznany kod zwracany bez zmian");
 
 print("OK: test_desklet_json.gjs");

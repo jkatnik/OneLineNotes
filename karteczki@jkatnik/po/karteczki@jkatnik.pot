@@ -1,4 +1,4 @@
-# Karteczki — Cinnamon desklet
+# SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the karteczki@jkatnik package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: karteczki@jkatnik\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 12:18+0200\n"
+"POT-Creation-Date: 2026-09-07 12:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,108 +17,132 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: karteczki@jkatnik/desklet.js:40
-msgid "Small"
-msgstr ""
-
-#: karteczki@jkatnik/desklet.js:41
-msgid "Medium"
-msgstr ""
-
-#: karteczki@jkatnik/desklet.js:42
-msgid "Large"
-msgstr ""
-
-#: karteczki@jkatnik/desklet.js:47
+#: karteczki@jkatnik/desklet.js:80
 msgid "Black"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:48
+#: karteczki@jkatnik/desklet.js:81
 msgid "Red"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:49
+#: karteczki@jkatnik/desklet.js:82
 msgid "Blue"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:50
+#: karteczki@jkatnik/desklet.js:83
 msgid "Green"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:55
+#: karteczki@jkatnik/desklet.js:89
+msgid "Small"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:90
+msgid "Medium"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:91
+msgid "Large"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:98
 msgid "bold"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:56
+#: karteczki@jkatnik/desklet.js:99
 msgid "italic"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:57
+#: karteczki@jkatnik/desklet.js:100
 msgid "underline"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:58
+#: karteczki@jkatnik/desklet.js:101
 msgid "strikethrough"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:59 karteczki@jkatnik/desklet.js:60
+#: karteczki@jkatnik/desklet.js:102 karteczki@jkatnik/desklet.js:103
 msgid "text"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:59
+#: karteczki@jkatnik/desklet.js:102
 msgid "address"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:85
+#: karteczki@jkatnik/desklet.js:129
 msgid "Paper strip"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:86
+#: karteczki@jkatnik/desklet.js:130
 msgid "Tall paper"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:171
+#: karteczki@jkatnik/desklet.js:235
 msgid "(no note data — remove this one and add a new note from the desktop menu)"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:457
+#: karteczki@jkatnik/desklet.js:518
 msgid "Ink color"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:466
+#: karteczki@jkatnik/desklet.js:527
 msgid "Background"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:473
+#: karteczki@jkatnik/desklet.js:534
 msgid "Text size"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:478
+#: karteczki@jkatnik/desklet.js:541
+msgid "System language"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:545
+msgid "Language"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:549
 msgid "Formatting"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:482
+#: karteczki@jkatnik/desklet.js:553 karteczki@jkatnik/desklet.js:697
 msgid "Remove"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:486
+#: karteczki@jkatnik/desklet.js:557
 msgid "New note"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:495
+#: karteczki@jkatnik/desklet.js:583
 msgid "Note formatting"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:512
+#: karteczki@jkatnik/desklet.js:600
 msgid "Markers do not nest. Ctrl+click opens a link."
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:513
+#: karteczki@jkatnik/desklet.js:601
 msgid "Double-click starts editing, Enter saves, Escape cancels."
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:519
+#: karteczki@jkatnik/desklet.js:607
 msgid "Close"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:681
+msgid "Remove this note?"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:684
+msgid "Its file will be deleted permanently."
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:686
+msgid "Don't ask again"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:692
+msgid "Cancel"
 msgstr ""
 
 #: karteczki@jkatnik/metadata.json

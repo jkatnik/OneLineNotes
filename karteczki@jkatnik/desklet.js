@@ -11,6 +11,7 @@ const Main = imports.ui.main;
 const Util = imports.misc.util;
 const PopupMenu = imports.ui.popupMenu;
 const ModalDialog = imports.ui.modalDialog;
+const CheckBox = imports.ui.checkBox;
 const ByteArray = imports.byteArray;
 
 const Gettext = imports.gettext;
@@ -18,47 +19,90 @@ const Gettext = imports.gettext;
 const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
 
-// Tłumaczenia instalują się do ~/.local/share/locale (tak robi
-// cinnamon-spices-makepot --install i tam szukają ich pozostałe xlety).
-Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
-
-function _(str) {
-    return Gettext.dgettext(UUID, str);
-}
 imports.searchPath.unshift(DESKLET_ROOT);
 const Markdown = imports.karteczki_markdown;
 const Layout = imports.karteczki_layout;
+const I18n = imports.karteczki_i18n;
 
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
 const IMG_DIR = DESKLET_ROOT + "/img";
+const PO_DIR = DESKLET_ROOT + "/po";
+// Ustawienia wspólne dla wszystkich karteczek (język, potwierdzanie usuwania)
+// — jeden plik obok notatek.
+const SETTINGS_PATH = DATA_DIR + "/settings.json";
 // Wymiary awaryjne: normalnie karta ma rozmiar swojego pliku tła.
 const CARD_WIDTH = 350;
 const CARD_HEIGHT = 100;
 const DEFAULT_BACKGROUND = "karteczka-bristol-4.png";
 const DEFAULT_FONT = "Caveat 20";
-const FONT_SIZES = [
-    { name: _("Small"), size: 16 },
-    { name: _("Medium"), size: 20 },
-    { name: _("Large"), size: 24 },
-];
 const DEFAULT_COLOR = "#112971";
 const MAX_ROTATION = 3;  // stopnie w każdą stronę — karteczki mają wyglądać na rzucone, nie przekrzywione
-const INK_COLORS = [
-    { name: _("Black"), hex: "#1a1a1a" },
-    { name: _("Red"), hex: "#a51d2d" },
-    { name: _("Blue"), hex: DEFAULT_COLOR },
-    { name: _("Green"), hex: "#26653b" },
-];
+
+// Tłumaczenia instalują się do ~/.local/share/locale (tak robi
+// cinnamon-spices-makepot --install i tam szukają ich pozostałe xlety).
+Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
+
+// Moduł jest ładowany raz na cały proces, więc te dwie zmienne są wspólne dla
+// wszystkich karteczek — na tym opiera się globalny wybór języka.
+let settings = null;
+let forcedTranslations = null;   // null = trzymamy się języka sesji (gettext)
+
+function getSettings() {
+    if (!settings) settings = readJson(SETTINGS_PATH) || {};
+    return settings;
+}
+
+function saveSettings() {
+    writeJson(SETTINGS_PATH, getSettings());
+}
+
+function loadLanguage() {
+    let lang = getSettings().language || "system";
+    if (lang === "system") {
+        forcedTranslations = null;
+    } else if (lang === "en") {
+        forcedTranslations = {};     // msgid już są po angielsku
+    } else {
+        let po = readText(PO_DIR + "/" + lang + ".po");
+        forcedTranslations = po ? I18n.parsePo(po) : null;
+    }
+}
+
+function _(str) {
+    if (forcedTranslations) return forcedTranslations[str] || str;
+    return Gettext.dgettext(UUID, str);
+}
+
+// Etykiety powstają przy każdym budowaniu menu, nie raz przy ładowaniu
+// modułu — inaczej przełączenie języka nie miałoby na nie wpływu.
+function inkColors() {
+    return [
+        { name: _("Black"), hex: "#1a1a1a" },
+        { name: _("Red"), hex: "#a51d2d" },
+        { name: _("Blue"), hex: DEFAULT_COLOR },
+        { name: _("Green"), hex: "#26653b" },
+    ];
+}
+
+function fontSizes() {
+    return [
+        { name: _("Small"), size: 16 },
+        { name: _("Medium"), size: 20 },
+        { name: _("Large"), size: 24 },
+    ];
+}
 // Ściągawka w oknie „Formatowanie": [składnia, jak wygląda po zrenderowaniu].
 // Przykładowe słowa są tłumaczone — składnia znaczników rzecz jasna nie.
-const FORMATTING_HELP = [
-    ["**" + _("bold") + "**", "<b>" + _("bold") + "</b>"],
-    ["*" + _("italic") + "*", "<i>" + _("italic") + "</i>"],
-    ["__" + _("underline") + "__", "<u>" + _("underline") + "</u>"],
-    ["~~" + _("strikethrough") + "~~", "<s>" + _("strikethrough") + "</s>"],
-    ["[" + _("text") + "](https://" + _("address") + ")",
-        '<span underline="single" foreground="#1a5fb4">' + _("text") + "</span>"],
-];
+function formattingHelp() {
+    return [
+        ["**" + _("bold") + "**", "<b>" + _("bold") + "</b>"],
+        ["*" + _("italic") + "*", "<i>" + _("italic") + "</i>"],
+        ["__" + _("underline") + "__", "<u>" + _("underline") + "</u>"],
+        ["~~" + _("strikethrough") + "~~", "<s>" + _("strikethrough") + "</s>"],
+        ["[" + _("text") + "](https://" + _("address") + ")",
+            '<span underline="single" foreground="#1a5fb4">' + _("text") + "</span>"],
+    ];
+}
 // bottom: 15 podnosi tekst o 7,5 px. Papier na grafice kończy się w ~85/100
 // (niżej jest wtopiony cień), a font ma długie wydłużenia dolne — bez tego
 // tekst jest wyśrodkowany geometrycznie, ale optycznie siedzi za nisko.
@@ -87,17 +131,25 @@ function backgroundLabel(file) {
     return file.replace(/\.png$/, "");
 }
 
-function listBackgrounds() {
+function listFiles(dir, suffix) {
     let names = [];
-    let enumerator = Gio.file_new_for_path(IMG_DIR).enumerate_children(
-        "standard::name", Gio.FileQueryInfoFlags.NONE, null
-    );
+    let file = Gio.file_new_for_path(dir);
+    if (!file.query_exists(null)) return names;
+    let enumerator = file.enumerate_children("standard::name", Gio.FileQueryInfoFlags.NONE, null);
     let info;
     while ((info = enumerator.next_file(null)) !== null) {
-        if (info.get_name().endsWith(".png")) names.push(info.get_name());
+        if (info.get_name().endsWith(suffix)) names.push(info.get_name());
     }
     enumerator.close(null);
     return names.sort();
+}
+
+function listBackgrounds() {
+    return listFiles(IMG_DIR, ".png");
+}
+
+function listPoFiles() {
+    return listFiles(PO_DIR, ".po");
 }
 
 // Pole `font` to pełny opis Pango ("Caveat 20"). Starsze pliki notatek mają
@@ -111,12 +163,16 @@ function randomRotation() {
     return Math.round((Math.random() * 2 - 1) * MAX_ROTATION * 100) / 100;
 }
 
-function readJson(path) {
+function readText(path) {
     let file = Gio.file_new_for_path(path);
     if (!file.query_exists(null)) return null;
     let [ok, contents] = file.load_contents(null);
-    if (!ok) return null;
-    return JSON.parse(ByteArray.toString(contents));
+    return ok ? ByteArray.toString(contents) : null;
+}
+
+function readJson(path) {
+    let text = readText(path);
+    return text === null ? null : JSON.parse(text);
 }
 
 function writeJson(path, data) {
@@ -137,10 +193,18 @@ MyDesklet.prototype = {
     _init: function (metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(this, metadata, desklet_id);
 
+        loadLanguage();
         this.notePath = null;
         this.note = null;
         this._loadNote();
         this._buildUI();
+        // Punkt rozwinięcia menu, nie punkt kliknięcia w jego pozycję — nowa
+        // karteczka ma wyjść tam, gdzie użytkownik otworzył menu. Podpięte raz,
+        // bo menu przeżywa przebudowę pozycji po zmianie języka.
+        this._menuPoint = null;
+        this._menu.connect("open-state-changed", Lang.bind(this, function (menu, open) {
+            if (open) this._menuPoint = global.get_pointer().slice(0, 2);
+        }));
         this._buildContextMenu();
 
         this._draggable.connect("drag-end", Lang.bind(this, this._onDragEnd));
@@ -426,10 +490,24 @@ MyDesklet.prototype = {
         return ok ? color : new Clutter.Color({ red: 17, green: 41, blue: 113, alpha: 255 });
     },
 
-    // Kolor, tło i rozmiar to ten sam wzorzec podmenu z kropką przy aktywnej
-    // pozycji — jedna metoda zamiast trzech kopii tego samego kodu.
-    _addChoiceMenu: function (title, options, isActive, onSelect) {
+    // Kolor, tło, rozmiar i język to ten sam wzorzec podmenu z kropką przy
+    // aktywnej pozycji — jedna metoda zamiast czterech kopii tego samego kodu.
+    _addChoiceMenu: function (title, iconName, options, isActive, onSelect) {
         let submenu = new PopupMenu.PopupSubMenuMenuItem(title);
+        // PopupSubMenuMenuItem nie przyjmuje ikony w konstruktorze. Ikona jako
+        // osobny aktor dokłada pozycji kolumnę, a że szerokości kolumn są
+        // wspólne dla całego menu, etykiety podmenu robiły się zerowej
+        // szerokości. Dlatego ikona i tekst idą razem, w jednym aktorze.
+        let label = submenu.label;
+        submenu.removeActor(label);
+        let box = new St.BoxLayout({ style: "spacing: 6px;" });
+        box.add_child(new St.Icon({
+            icon_name: iconName,
+            icon_type: St.IconType.SYMBOLIC,
+            style_class: "popup-menu-icon",
+        }));
+        box.add_child(label);
+        submenu.addActor(box, { position: 0 });
         let items = options.map(Lang.bind(this, function (option) {
             let item = new PopupMenu.PopupMenuItem(option.name);
             item.setShowDot(isActive(option.value));
@@ -444,18 +522,8 @@ MyDesklet.prototype = {
     },
 
     _buildContextMenu: function () {
-        // Punkt rozwinięcia menu, nie punkt kliknięcia w jego pozycję — nowa
-        // karteczka ma wyjść tam, gdzie użytkownik otworzył menu.
-        this._menuPoint = null;
-        this._menu.connect("open-state-changed", Lang.bind(this, function (menu, open) {
-            if (open) {
-                let [x, y] = global.get_pointer();
-                this._menuPoint = [x, y];
-            }
-        }));
-
-        this._addChoiceMenu(_("Ink color"),
-            INK_COLORS.map(function (ink) { return { name: ink.name, value: ink.hex }; }),
+        this._addChoiceMenu(_("Ink color"), "color-select-symbolic",
+            inkColors().map(function (ink) { return { name: ink.name, value: ink.hex }; }),
             Lang.bind(this, function (hex) { return (this.note.color || DEFAULT_COLOR) === hex; }),
             Lang.bind(this, function (hex) {
                 this.note.color = hex;
@@ -463,29 +531,56 @@ MyDesklet.prototype = {
                 this._applyInkColor(hex);
             }));
 
-        this._addChoiceMenu(_("Background"),
+        this._addChoiceMenu(_("Background"), "image-x-generic-symbolic",
             listBackgrounds().map(function (file) {
                 return { name: backgroundLabel(file), value: file };
             }),
             Lang.bind(this, function (file) { return (this.note.background || DEFAULT_BACKGROUND) === file; }),
             Lang.bind(this, this._setBackground));
 
-        this._addChoiceMenu(_("Text size"),
-            FONT_SIZES.map(function (f) { return { name: f.name, value: f.size }; }),
+        this._addChoiceMenu(_("Text size"), "font-x-generic-symbolic",
+            fontSizes().map(function (f) { return { name: f.name, value: f.size }; }),
             Lang.bind(this, function (size) { return fontSpec(this.note.font).endsWith(" " + size); }),
             Lang.bind(this, this._setFontSize));
 
-        let helpItem = new PopupMenu.PopupMenuItem(_("Formatting"));
+        // "system" = język sesji przez gettext; reszta to pliki po/*.po plus
+        // angielski, który jest językiem samych msgid i pliku nie potrzebuje.
+        let languages = [{ name: _("System language"), value: "system" }, { name: "English", value: "en" }];
+        I18n.availableLanguages(listPoFiles()).forEach(function (code) {
+            if (code !== "en") languages.push({ name: I18n.languageName(code), value: code });
+        });
+        this._addChoiceMenu(_("Language"), "preferences-desktop-locale-symbolic", languages,
+            Lang.bind(this, function (code) { return (getSettings().language || "system") === code; }),
+            Lang.bind(this, this._setLanguage));
+
+        let helpItem = new PopupMenu.PopupIconMenuItem(_("Formatting"), "format-text-bold-symbolic", St.IconType.SYMBOLIC);
         helpItem.connect("activate", Lang.bind(this, this._showFormattingHelp));
         this._menu.addMenuItem(helpItem);
 
-        let removeItem = new PopupMenu.PopupMenuItem(_("Remove"));
+        let removeItem = new PopupMenu.PopupIconMenuItem(_("Remove"), "user-trash-symbolic", St.IconType.SYMBOLIC);
         removeItem.connect("activate", Lang.bind(this, this._onRemoveClicked));
         this._menu.addMenuItem(removeItem);
 
-        let newItem = new PopupMenu.PopupMenuItem(_("New note"));
+        let newItem = new PopupMenu.PopupIconMenuItem(_("New note"), "list-add-symbolic", St.IconType.SYMBOLIC);
         newItem.connect("activate", Lang.bind(this, this._onNewClicked));
         this._menu.addMenuItem(newItem);
+    },
+
+    // Język jest ustawieniem wspólnym, więc po zmianie trzeba przemalować
+    // menu i treść we wszystkich karteczkach, nie tylko w tej klikniętej.
+    _setLanguage: function (code) {
+        getSettings().language = code;
+        saveSettings();
+        loadLanguage();
+        Main.deskletContainer.actor.get_children().forEach(function (actor) {
+            if (actor._desklet && actor._desklet._applyLanguage) actor._desklet._applyLanguage();
+        });
+    },
+
+    _applyLanguage: function () {
+        this._menu.removeAll();
+        this._buildContextMenu();
+        this._renderContent();
     },
 
     _showFormattingHelp: function () {
@@ -496,7 +591,7 @@ MyDesklet.prototype = {
             style: "font-weight: bold; padding-bottom: 8px;",
         }));
 
-        FORMATTING_HELP.forEach(function (row) {
+        formattingHelp().forEach(function (row) {
             let line = new St.BoxLayout({ style: "spacing: 20px;" });
             line.add_child(new St.Label({
                 text: row[0],
@@ -582,6 +677,49 @@ MyDesklet.prototype = {
     },
 
     _onRemoveClicked: function () {
+        if (getSettings().skipRemoveConfirmation) {
+            this._remove();
+            return;
+        }
+
+        let dialog = new ModalDialog.ModalDialog();
+        let box = new St.BoxLayout({ vertical: true, style: "spacing: 8px; padding: 12px;" });
+        box.add_child(new St.Label({
+            text: _("Remove this note?"),
+            style: "font-weight: bold;",
+        }));
+        box.add_child(new St.Label({ text: _("Its file will be deleted permanently.") }));
+
+        let skip = new CheckBox.CheckBox(_("Don't ask again"), null, false);
+        box.add_child(skip.actor);
+        dialog.contentLayout.add_child(box);
+
+        dialog.setButtons([
+            {
+                label: _("Cancel"),
+                action: function () { dialog.close(); },
+                key: Clutter.KEY_Escape,
+            },
+            {
+                label: _("Remove"),
+                action: Lang.bind(this, function () {
+                    // Zapamiętujemy dopiero po potwierdzeniu — zaznaczenie
+                    // checkboxa i Anuluj nie ma wyłączać pytania.
+                    if (skip.actor.checked) {
+                        getSettings().skipRemoveConfirmation = true;
+                        saveSettings();
+                    }
+                    dialog.close();
+                    this._remove();
+                }),
+                default: true,
+                destructive_action: true,
+            },
+        ]);
+        dialog.open();
+    },
+
+    _remove: function () {
         Util.spawnCommandLine(
             DESKLET_ROOT + "/../bin/karteczki-usun " + this.instance_id
         );
