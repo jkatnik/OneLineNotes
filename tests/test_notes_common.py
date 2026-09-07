@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "onelinenotes@jkatnik" / "bin"))
-from notes_common import create_note, delete_note, DESKLET_UUID
+from notes_common import create_note, delete_note, DATA_DIR, DESKLET_UUID
 
 
 class FakeGsettings:
@@ -30,6 +30,14 @@ class FakeGsettings:
             )
             return subprocess.CompletedProcess(cmd, 0)
         raise ValueError(f"nieoczekiwane wywołanie: {cmd}")
+
+
+class DomyslneSciezkiTest(unittest.TestCase):
+    def test_katalog_danych_zgodny_z_uuid(self):
+        # Przy zmianie nazwy projektu łatwo przestawić UUID i zapomnieć o
+        # katalogu danych — wtedy skrypt pisze w jedno miejsce, a desklet
+        # czyta z drugiego i każda nowa karteczka jest "bez danych".
+        self.assertEqual(DATA_DIR.name, DESKLET_UUID.split("@")[0])
 
 
 class KarteczkiCommonTest(unittest.TestCase):

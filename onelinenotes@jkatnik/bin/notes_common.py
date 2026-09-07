@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 DESKLET_UUID = "onelinenotes@jkatnik"
-DATA_DIR = Path.home() / ".local/share/karteczki"
+DATA_DIR = Path.home() / ".local/share/onelinenotes"
 DEFAULT_CONTENT = "Lorem ipsum"
 DEFAULT_COLOR = "#112971"
 DEFAULT_FONT = "Caveat 20"  # pełny opis Pango: rodzina + rozmiar
