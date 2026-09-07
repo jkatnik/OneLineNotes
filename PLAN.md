@@ -17,10 +17,10 @@
 
 ## Status (ostatnia aktualizacja: 2026-09-07)
 
-Fazy 0-4 zrobione i zweryfikowane na żywym Cinnamonie, plus formatowanie
-Markdown i wybór koloru atramentu z menu (2026-09-07). Zostaje Faza 5
-(README + spisany scenariusz testowy) i Faza 6 (wybór tła i czcionki —
-zaprojektowana, nie zaimplementowana).
+Wszystkie fazy (0-7) zrobione i zweryfikowane na żywym Cinnamonie.
+Ostatnia sesja (2026-09-07) dołożyła formatowanie Markdown, wybór koloru
+atramentu, tła i rozmiaru tekstu, pozycjonowanie nowej karteczki w miejscu
+menu, kursor-rączkę nad linkiem, README i ściągawkę „Formatowanie".
 
 - ✅ Faza 0 — format `enabled-desklets` potwierdzony eksperymentalnie:
   `UUID:instance_id:X:Y`. Akcja Nemo na tle pulpitu **zweryfikowana
@@ -43,9 +43,9 @@ zaprojektowana, nie zaimplementowana).
 
 | Co | Wartość |
 |---|---|
-| Rozmiar karty | `CARD_WIDTH` 350 × `CARD_HEIGHT` 100 |
-| Tło | `karteczki@jkatnik/img/karteczka-bristol-4.png` (przezroczyste tło, renderowane 1:1) |
-| Font | `Caveat 20` (zbundlowany w `assets/fonts/`, zainstalowany w `~/.local/share/fonts/`) |
+| Rozmiar karty | rozmiar pliku tła; `CARD_WIDTH` 350 × `CARD_HEIGHT` 100 tylko awaryjnie |
+| Tło | pole `background` w JSON, plik z `karteczki@jkatnik/img/` (domyślnie `karteczka-bristol-4.png`, 350×100; drugie dostępne: `-3`, 395×158) |
+| Font | pole `font` w JSON jako opis Pango (domyślnie `Caveat 20`; czcionka zbundlowana w `assets/fonts/`) |
 | Kolor atramentu | domyślnie niebieski `#112971`; z menu też czarny `#1a1a1a`, czerwony `#a51d2d`, zielony `#26653b` |
 | Padding tekstu | `{ top: 0, right: 16, bottom: 15, left: 16 }` — `bottom` podnosi tekst o 7,5 px, bo papier kończy się w ~85/100 wysokości grafiki |
 | Wyrównanie | `Clutter.BinLayout`, `y_align: CENTER`, `x_align: START` |
@@ -87,8 +87,9 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
   skryptowi: `karteczki-nowa [x y]`. Akcja Nemo nie ma jak podać
   współrzędnych, więc skrypt bez argumentów pyta o pozycję kursora przez
   Gdk. Bez argumentów i bez Gdk zostaje stara kaskada od `BASE_X/BASE_Y`.
-- **Prawoklik** → menu: „Kolor atramentu" (podmenu z kropką przy
-  aktywnym), „Usuń", „Nowa karteczka".
+- **Prawoklik** → menu: podmenu „Kolor atramentu", „Tło" i „Rozmiar
+  tekstu" (każde z kropką przy aktywnej pozycji), „Formatowanie"
+  (okno ze ściągawką Markdown), „Usuń", „Nowa karteczka".
 - **Enter** → zapis i wyjście z edycji, **Escape** → anulowanie (przywraca
   treść sprzed edycji), **klik poza kartą** → zapis i wyjście.
 - Poza edycją `_text` ma `reactive: false` — inaczej `Clutter.Text`
@@ -103,8 +104,6 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 
 ### Znane niespójności (drobne, świadome)
 
-- Pola `background` i `font` w JSON notatki są zapisywane, ale desklet ich
-  nie czyta (ścieżka tła i font są stałe w kodzie) — ożywia je Faza 6.
 - `assets/*.png` to źródła, `karteczki@jkatnik/img/*.png` to kopie
   ładowane przez desklet — kopiowane ręcznie, nic tego nie synchronizuje.
 - Cinnamon przy restarcie powłoki przepisuje `enabled-desklets` ze stanu w
@@ -139,7 +138,11 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 6. **Guake schowany poza ekranem potrafi zabrać wejście pulpitowi** —
    objaw „klikanie w karteczkę przestało działać" bez żadnego regresu w
    kodzie (`on_desklet_clicked` w ogóle się nie odpala). Sprawdzić F12.
-7. Silne pomniejszanie assetu (>8×) spłaszcza fakturę papieru —
+7. **Pozycja spoza obszaru pulpitu jest korygowana przez Cinnamona** —
+   desklet dodany na `3000:250` (drugi monitor) wylądował na `675:525`,
+   dosuniętym do siatki 25 px. Nie jest to błąd `karteczki-nowa`: skrypt
+   zapisuje podane współrzędne, Cinnamon je potem przestawia.
+8. Silne pomniejszanie assetu (>8×) spłaszcza fakturę papieru —
    dlatego tło ma dziś dokładnie rozmiar karty. Poprzednia proteza
    (`boostTexture()`, unsharp mask) usunięta jako zbędna.
 
@@ -182,16 +185,18 @@ Nie powstały (i nie są potrzebne): `settings-schema.json`, `icon.png`.
   "id": "uuid-v4",
   "content": "tekst w **Markdown**",
   "color": "#112971",
-  "font": "Caveat",
-  "background": "karteczka-bristol.png",
+  "font": "Caveat 20",
+  "background": "karteczka-bristol-4.png",
   "position": { "x": 100, "y": 100 },
   "created_at": "2026-09-06T12:00:00+02:00",
   "modified_at": "2026-09-06T12:00:00+02:00"
 }
 ```
 
-Pola `font` i `background` są dziś tylko zapisywane — desklet ich nie
-czyta (font i ścieżka tła są stałe w `desklet.js`).
+`font` to pełny opis Pango (rodzina + rozmiar) — rodzinę można podmienić
+ręcznie w pliku, menu zmienia tylko rozmiar. `background` to sama nazwa
+pliku z `karteczki@jkatnik/img/`; nazwa nieistniejącego pliku cofa się do
+domyślnego tła przy wczytaniu notatki.
 
 ## Fazy
 
@@ -219,7 +224,7 @@ przez `Clutter.Image` — 9-slice niepotrzebny, bo karta ma stały rozmiar.
 Font Caveat zbundlowany w `assets/fonts/` i zainstalowany (zmiana decyzji
 z AGENTS.md, gdzie był traktowany jako zależność systemowa).
 
-### ⬜ Faza 5 — porządki (jedyne, co zostało)
+### ✅ Faza 5 — porządki
 - Krótki `README.md` z instrukcją instalacji (symlink do
   `~/.local/share/cinnamon/desklets/`, instalacja `.nemo_action`,
   instalacja fontu).
@@ -227,50 +232,41 @@ z AGENTS.md, gdzie był traktowany jako zależność systemowa).
   przeciągnij → nowa karteczka z menu → usuń → restart Cinnamona
   (`Alt+F2`, `r`) → karteczki wracają na miejsce.
 
-### ⬜ Faza 6 — wybór tła i czcionki (zaprojektowane, nie zaimplementowane)
+### ✅ Faza 6 — wybór tła i czcionki
 
-Obie rzeczy działają tak samo jak gotowy już wybór koloru atramentu:
-podmenu w menu kontekstowym → zapis pola w JSON karteczki → natychmiastowe
-przerysowanie. Pola `background` i `font` już są w schemacie, dziś martwe.
+Oba wyborniki chodzą tym samym wzorcem co kolor atramentu (`_addChoiceMenu`:
+podmenu z kropką przy aktywnej pozycji → zapis pola w JSON → przerysowanie).
 
-**Tło (`background`)**
+**Tło (`background`)** — sama nazwa pliku z `karteczki@jkatnik/img/`, więc
+JSON nie zawiera ścieżek absolutnych i przetrwa przeniesienie repo. Podmenu
+listuje `img/*.png` przez `Gio.File.enumerate_children`. **Rozmiar karty
+bierze się z pliku** (`pixbuf.get_width/height`), a nie z `CARD_WIDTH`/
+`CARD_HEIGHT` — te zostały tylko jako wymiar awaryjny; inne tło może znaczyć
+inny format karteczki (dziś: 350×100 i 395×158). Nazwa pliku, którego nie
+ma, cofa się do domyślnego tła już przy wczytaniu notatki — inaczej stare
+notatki nie zaznaczałyby w menu żadnej pozycji.
 
-- W JSON sama nazwa pliku, np. `"karteczka-bristol-4.png"`; katalog stały
-  (`karteczki@jkatnik/img/`), żeby JSON nie zawierał ścieżek absolutnych i
-  przetrwał przeniesienie repo.
-- **Rozmiar karty = rozmiar pliku PNG** (`pixbuf.get_width/height`), a nie
-  stałe `CARD_WIDTH`/`CARD_HEIGHT`. Konwencja z Fazy 4 („asset renderowany
-  1:1") zostaje, tylko przestaje być zaszyta w kodzie — inne tło może
-  znaczyć inny format karteczki. Stałe zostają wyłącznie jako wymiar
-  awaryjny, gdy pliku nie ma.
-- Wymagania dla assetu: PNG z kanałem alfa (cień i nierówne brzegi
-  wtopione w przezroczystość), dokładnie w docelowym rozmiarze ekranowym.
-  Rozsądne warianty do przygotowania: `350×100` (dzisiejszy pasek),
-  `350×200` (wysoka), `200×200` (kwadrat). Powyżej ~2× skalowania faktura
-  papieru się spłaszcza — patrz pułapka 7.
-- Menu: podmenu „Tło" listujące `img/*.png` (`Gio.File.enumerate_children`),
-  etykieta = nazwa bez rozszerzenia, kropka przy aktywnym.
-- Po zmianie: `_container.set_size(w, h)`, podmiana aktora obrazu,
-  `_text.set_width(w - padding)`. Brak pliku → tło domyślne, bez wyjątku.
-- **Otwarte:** czy pionowy padding tekstu (dziś `bottom: 15`, dobrany pod
-  jeden konkretny obrazek) ma być polem assetu — najprościej: konwencja,
-  że papier na PNG kończy się w 85% wysokości, więc wzór działa dla
-  każdego tła.
+Nowy asset: PNG z kanałem alfa (cień i nierówne brzegi wtopione w
+przezroczystość), dokładnie w docelowym rozmiarze ekranowym — przy
+skalowaniu faktura papieru się spłaszcza (pułapka 7). Pionowy padding
+tekstu pozostaje konwencją „papier kończy się w ~85% wysokości".
 
-**Czcionka (`font`)**
+**Czcionka (`font`)** — pełny opis Pango w jednym polu (`"Caveat 20"`), bo
+dokładnie to przyjmuje `Clutter.Text.font_name`. Menu zmienia sam rozmiar
+(Mała 16 / Średnia 20 / Duża 24) przez podmianę końcowej liczby, więc ręcznie
+wpisana w JSON rodzina przeżywa zmianę rozmiaru. Rodziny nie wybiera się z
+UI: enumerowanie `Pango.FontMap.list_families()` to setki pozycji w menu
+karteczki, a zbundlowana jest jedna (Caveat). Wartość bez rozmiaru (notatki
+sprzed tej fazy) zastępowana jest domyślną — inaczej Pango zeszłoby do
+własnego, drobnego rozmiaru bazowego.
 
-- W JSON pełny opis Pango w jednym polu: `"Caveat 20"` (rodzina + rozmiar),
-  bo dokładnie to przyjmuje `Clutter.Text.font_name` — bez rozbijania na
-  dwa pola i sklejania w kodzie.
-- Menu, wariant rekomendowany (lazy): podmenu „Rozmiar tekstu" — Mała 16 /
-  Średnia 20 / Duża 24, rodzina zmieniana ręcznie w JSON. Pokrywa realną
-  potrzebę („nie mieści się / za drobne") jednym podmenu.
-- Wariant szerszy, jeśli rodzina ma być wybierana z UI: lista ograniczona
-  do fontów zbundlowanych w `assets/fonts/` (dziś: Caveat). Enumerowanie
-  fontów systemowych przez `Pango.FontMap.list_families()` odpada — setki
-  pozycji w menu kontekstowym karteczki.
-- Uwaga z Fazy 4: nowy plik `.ttf` wymaga restartu Cinnamona, żeby Pango
-  go zobaczył. Instalacja fontu zostaje krokiem README, nie runtime'em.
+### ✅ Faza 7 — ściągawka „Formatowanie"
+
+Pozycja menu otwiera `ModalDialog` z tabelką składnia → efekt (każdy wiersz
+renderuje realny markup, więc ściągawka pokazuje dokładnie to, co zrobi
+karteczka) plus przypomnienie o Ctrl+kliku i dwukliku. `close()` w
+Cinnamonie domyślnie zwalnia grab i niszczy dialog (`destroyOnClose: true`),
+więc nie ma czego sprzątać ręcznie.
 
 ## Poza zakresem (patrz AGENTS.md → YAGNI)
 

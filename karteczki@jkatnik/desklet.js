@@ -10,6 +10,7 @@ const Lang = imports.lang;
 const Main = imports.ui.main;
 const Util = imports.misc.util;
 const PopupMenu = imports.ui.popupMenu;
+const ModalDialog = imports.ui.modalDialog;
 const ByteArray = imports.byteArray;
 
 const UUID = "karteczki@jkatnik";
@@ -18,8 +19,17 @@ imports.searchPath.unshift(DESKLET_ROOT);
 const Markdown = imports.karteczki_markdown;
 
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
+const IMG_DIR = DESKLET_ROOT + "/img";
+// Wymiary awaryjne: normalnie karta ma rozmiar swojego pliku tła.
 const CARD_WIDTH = 350;
 const CARD_HEIGHT = 100;
+const DEFAULT_BACKGROUND = "karteczka-bristol-4.png";
+const DEFAULT_FONT = "Caveat 20";
+const FONT_SIZES = [
+    { name: "Mała", size: 16 },
+    { name: "Średnia", size: 20 },
+    { name: "Duża", size: 24 },
+];
 const DEFAULT_COLOR = "#112971";
 const INK_COLORS = [
     { name: "Czarny", hex: "#1a1a1a" },
@@ -27,13 +37,22 @@ const INK_COLORS = [
     { name: "Niebieski", hex: DEFAULT_COLOR },
     { name: "Zielony", hex: "#26653b" },
 ];
+// Ściągawka w oknie „Formatowanie": [składnia, jak wygląda po zrenderowaniu].
+const FORMATTING_HELP = [
+    ["**pogrubienie**", "<b>pogrubienie</b>"],
+    ["*kursywa*", "<i>kursywa</i>"],
+    ["__podkreślenie__", "<u>podkreślenie</u>"],
+    ["~~przekreślenie~~", "<s>przekreślenie</s>"],
+    ["[tekst](https://adres)", '<span underline="single" foreground="#1a5fb4">tekst</span>'],
+];
 // bottom: 15 podnosi tekst o 7,5 px. Papier na grafice kończy się w ~85/100
 // (niżej jest wtopiony cień), a font ma długie wydłużenia dolne — bez tego
 // tekst jest wyśrodkowany geometrycznie, ale optycznie siedzi za nisko.
 const TEXT_PADDING = { top: 0, right: 16, bottom: 15, left: 16 };
 
-function loadImageActor(path, width, height) {
-    let pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, true);
+// Tło renderowane 1:1 — rozmiar karty bierze się z pliku, nie odwrotnie.
+function loadImageActor(path) {
+    let pixbuf = GdkPixbuf.Pixbuf.new_from_file(path);
     let image = new Clutter.Image();
     image.set_data(
         pixbuf.get_pixels(),
@@ -41,12 +60,29 @@ function loadImageActor(path, width, height) {
         pixbuf.get_width(), pixbuf.get_height(),
         pixbuf.get_rowstride()
     );
-    // Rozmiar z pixbufa, nie żądany: przy niepasujących proporcjach
-    // new_from_file_at_scale zwraca mniejszy obraz, a rozciągnięcie go
-    // do width×height zniekształciłoby karteczkę.
     let actor = new Clutter.Actor({ width: pixbuf.get_width(), height: pixbuf.get_height() });
     actor.set_content(image);
     return actor;
+}
+
+function listBackgrounds() {
+    let names = [];
+    let enumerator = Gio.file_new_for_path(IMG_DIR).enumerate_children(
+        "standard::name", Gio.FileQueryInfoFlags.NONE, null
+    );
+    let info;
+    while ((info = enumerator.next_file(null)) !== null) {
+        if (info.get_name().endsWith(".png")) names.push(info.get_name());
+    }
+    enumerator.close(null);
+    return names.sort();
+}
+
+// Pole `font` to pełny opis Pango ("Caveat 20"). Starsze pliki notatek mają
+// samą rodzinę bez rozmiaru — takie wartości zastępujemy domyślną, zamiast
+// pozwolić Pango zejść do własnego (drobnego) rozmiaru bazowego.
+function fontSpec(font) {
+    return /\d$/.test(font || "") ? font : DEFAULT_FONT;
 }
 
 function readJson(path) {
@@ -99,17 +135,21 @@ MyDesklet.prototype = {
                 color: DEFAULT_COLOR,
             };
         }
+        // Notatki sprzed Fazy 6 wskazują tło, którego nie ma w img/ — bez tego
+        // menu nie zaznaczałoby żadnej pozycji jako aktywnej.
+        if (!this.note.background ||
+            !GLib.file_test(IMG_DIR + "/" + this.note.background, GLib.FileTest.EXISTS)) {
+            this.note.background = DEFAULT_BACKGROUND;
+        }
     },
 
     _buildUI: function () {
-        let imgPath = DESKLET_ROOT + "/img/karteczka-bristol-4.png";
         this._container = new Clutter.Actor({
-            width: CARD_WIDTH,
-            height: CARD_HEIGHT,
             reactive: true,
             layout_manager: new Clutter.BinLayout(),
         });
-        this._container.add_child(loadImageActor(imgPath, CARD_WIDTH, CARD_HEIGHT));
+        this._background = null;
+        this._applyBackground();
 
         this._text = new Clutter.Text({
             editable: false,
@@ -119,7 +159,7 @@ MyDesklet.prototype = {
             // Poza edycją klik musi dojść do deskletu; reactive Text
             // przechwytuje go, zanim on_desklet_clicked() zdąży wystartować modal.
             reactive: false,
-            font_name: "Caveat 20",
+            font_name: fontSpec(this.note.font),
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             margin_top: TEXT_PADDING.top,
@@ -127,7 +167,7 @@ MyDesklet.prototype = {
             margin_bottom: TEXT_PADDING.bottom,
             margin_left: TEXT_PADDING.left,
         });
-        this._text.set_width(CARD_WIDTH - TEXT_PADDING.left - TEXT_PADDING.right);
+        this._fitTextWidth();
         this._container.add_child(this._text);
 
         this._editing = false;
@@ -196,6 +236,45 @@ MyDesklet.prototype = {
         // Nemo może być nad nowym deskletem zanim Cinnamon zacznie śledzić
         // jego aktor myszy. Bez tego nie docierają ani klik, ani prawoklik.
         this._trackMouse();
+    },
+
+    _applyBackground: function () {
+        if (this._background) this._background.destroy();
+        this._background = null;
+        // Nazwa pliku, nie ścieżka — JSON notatki ma przetrwać przeniesienie repo.
+        let names = [this.note.background, DEFAULT_BACKGROUND];
+        for (let i = 0; i < names.length; i++) {
+            if (!names[i]) continue;
+            try {
+                this._background = loadImageActor(IMG_DIR + "/" + names[i]);
+                break;
+            } catch (e) {
+                global.logWarning("karteczki: nie wczytano tła " + names[i] + " (" + e + ")");
+            }
+        }
+        if (this._background) {
+            this._container.insert_child_below(this._background, null);
+            this._container.set_size(this._background.get_width(), this._background.get_height());
+        } else {
+            this._container.set_size(CARD_WIDTH, CARD_HEIGHT);
+        }
+    },
+
+    _fitTextWidth: function () {
+        this._text.set_width(this._container.get_width() - TEXT_PADDING.left - TEXT_PADDING.right);
+    },
+
+    _setBackground: function (name) {
+        this.note.background = name;
+        this._saveNote();
+        this._applyBackground();
+        this._fitTextWidth();
+    },
+
+    _setFontSize: function (size) {
+        this.note.font = fontSpec(this.note.font).replace(/\d+$/, String(size));
+        this._saveNote();
+        this._text.set_font_name(this.note.font);
     },
 
     // Poza edycją treść jest renderowana jako Pango markup; w edycji widać
@@ -282,6 +361,23 @@ MyDesklet.prototype = {
         return ok ? color : new Clutter.Color({ red: 17, green: 41, blue: 113, alpha: 255 });
     },
 
+    // Kolor, tło i rozmiar to ten sam wzorzec podmenu z kropką przy aktywnej
+    // pozycji — jedna metoda zamiast trzech kopii tego samego kodu.
+    _addChoiceMenu: function (title, options, isActive, onSelect) {
+        let submenu = new PopupMenu.PopupSubMenuMenuItem(title);
+        let items = options.map(Lang.bind(this, function (option) {
+            let item = new PopupMenu.PopupMenuItem(option.name);
+            item.setShowDot(isActive(option.value));
+            item.connect("activate", function () {
+                onSelect(option.value);
+                items.forEach(function (other, i) { other.setShowDot(isActive(options[i].value)); });
+            });
+            submenu.menu.addMenuItem(item);
+            return item;
+        }));
+        this._menu.addMenuItem(submenu);
+    },
+
     _buildContextMenu: function () {
         // Punkt rozwinięcia menu, nie punkt kliknięcia w jego pozycję — nowa
         // karteczka ma wyjść tam, gdzie użytkownik otworzył menu.
@@ -293,22 +389,30 @@ MyDesklet.prototype = {
             }
         }));
 
-        let inkMenu = new PopupMenu.PopupSubMenuMenuItem("Kolor atramentu");
-        this._inkItems = INK_COLORS.map(Lang.bind(this, function (ink) {
-            let item = new PopupMenu.PopupMenuItem(ink.name);
-            item.setShowDot((this.note.color || DEFAULT_COLOR) === ink.hex);
-            item.connect("activate", Lang.bind(this, function () {
-                this.note.color = ink.hex;
+        this._addChoiceMenu("Kolor atramentu",
+            INK_COLORS.map(function (ink) { return { name: ink.name, value: ink.hex }; }),
+            Lang.bind(this, function (hex) { return (this.note.color || DEFAULT_COLOR) === hex; }),
+            Lang.bind(this, function (hex) {
+                this.note.color = hex;
                 this._saveNote();
-                this._text.set_color(this._hexToClutterColor(ink.hex));
-                this._inkItems.forEach(function (other, i) {
-                    other.setShowDot(INK_COLORS[i].hex === ink.hex);
-                });
+                this._text.set_color(this._hexToClutterColor(hex));
             }));
-            inkMenu.menu.addMenuItem(item);
-            return item;
-        }));
-        this._menu.addMenuItem(inkMenu);
+
+        this._addChoiceMenu("Tło",
+            listBackgrounds().map(function (file) {
+                return { name: file.replace(/\.png$/, ""), value: file };
+            }),
+            Lang.bind(this, function (file) { return (this.note.background || DEFAULT_BACKGROUND) === file; }),
+            Lang.bind(this, this._setBackground));
+
+        this._addChoiceMenu("Rozmiar tekstu",
+            FONT_SIZES.map(function (f) { return { name: f.name, value: f.size }; }),
+            Lang.bind(this, function (size) { return fontSpec(this.note.font).endsWith(" " + size); }),
+            Lang.bind(this, this._setFontSize));
+
+        let helpItem = new PopupMenu.PopupMenuItem("Formatowanie");
+        helpItem.connect("activate", Lang.bind(this, this._showFormattingHelp));
+        this._menu.addMenuItem(helpItem);
 
         let removeItem = new PopupMenu.PopupMenuItem("Usuń");
         removeItem.connect("activate", Lang.bind(this, this._onRemoveClicked));
@@ -317,6 +421,42 @@ MyDesklet.prototype = {
         let newItem = new PopupMenu.PopupMenuItem("Nowa karteczka");
         newItem.connect("activate", Lang.bind(this, this._onNewClicked));
         this._menu.addMenuItem(newItem);
+    },
+
+    _showFormattingHelp: function () {
+        let dialog = new ModalDialog.ModalDialog();
+        let box = new St.BoxLayout({ vertical: true, style: "spacing: 6px; padding: 12px;" });
+        box.add_child(new St.Label({
+            text: "Formatowanie treści karteczki",
+            style: "font-weight: bold; padding-bottom: 8px;",
+        }));
+
+        FORMATTING_HELP.forEach(function (row) {
+            let line = new St.BoxLayout({ style: "spacing: 20px;" });
+            line.add_child(new St.Label({
+                text: row[0],
+                style: "font-family: monospace; width: 210px;",
+            }));
+            let rendered = new St.Label();
+            rendered.clutter_text.set_markup(row[1]);
+            line.add_child(rendered);
+            box.add_child(line);
+        });
+
+        box.add_child(new St.Label({
+            text: "Znaczniki nie zagnieżdżają się. Ctrl+klik otwiera link.\n" +
+                  "Dwuklik wchodzi w edycję, Enter zapisuje, Escape anuluje.",
+            style: "padding-top: 10px;",
+        }));
+
+        dialog.contentLayout.add_child(box);
+        dialog.setButtons([{
+            label: "Zamknij",
+            action: function () { dialog.close(); },
+            key: Clutter.KEY_Escape,
+            default: true,
+        }]);
+        dialog.open();
     },
 
     _saveNote: function () {

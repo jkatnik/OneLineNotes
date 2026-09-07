@@ -64,10 +64,9 @@ tych mechanizmów.
 
 ## Czego NIE robimy (świadomie, YAGNI)
 
-- Kolor atramentu wybierany z menu kontekstowego (4 kolory na stałe), ale
-  bez palety/color pickera. Wybór tła i czcionki: zaprojektowany w PLAN.md
-  (Faza 6), jeszcze nie zaimplementowany — do tego czasu pola `background`
-  i `font` w JSON są zapisywane, ale przez desklet ignorowane.
+- Kolor atramentu, tło i rozmiar tekstu wybierane z menu kontekstowego, ale
+  z zamkniętych list: bez color pickera, bez wyboru pliku z dysku i bez
+  listy rodzin czcionek (rodzinę zmienia się ręcznie w polu `font`).
 - Brak zagnieżdżonego formatowania Markdown, nagłówków, list i cytatów —
   tylko pogrubienie, kursywa, podkreślenie, przekreślenie i link.
 - Brak własnego mechanizmu przeciągania — używamy wbudowanego drag

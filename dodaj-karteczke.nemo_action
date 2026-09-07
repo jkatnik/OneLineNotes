@@ -1,0 +1,8 @@
+[Nemo Action]
+Name=Dodaj karteczkę
+Comment=Tworzy nową karteczkę samoprzylepną na pulpicie
+Exec=__KARTECZKI__/bin/karteczki-nowa
+Selection=none
+Extensions=any
+Quote=none
+EscapeSpaces=false
