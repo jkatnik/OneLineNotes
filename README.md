@@ -181,6 +181,22 @@ Po zmianach w desklecie warto przejść całą ścieżkę:
 8. Prawoklik → „Usuń" na obu — znikają z pulpitu, a ich pliki z
    `~/.local/share/karteczki/`.
 
+## Licencja
+
+Kod: **GPL-3.0-or-later** (pełny tekst w [LICENSE](LICENSE)).
+
+Czcionki w `assets/fonts/` mają **własną licencję** — SIL Open Font License
+1.1 (`assets/fonts/OFL.txt`), copyright The Caveat Project Authors. To nie
+jest konflikt: OFL nie obejmuje programu, który font dołącza, więc obie
+licencje po prostu współistnieją w repozytorium. Warunki OFL, o których warto
+pamiętać przy redystrybucji: font nie może być sprzedawany samodzielnie, a
+każda kopia musi nieść notę copyright i pełny tekst licencji — stąd `OFL.txt`
+obok plików `.ttf`. Font nie ma zastrzeżonej nazwy (Reserved Font Name),
+więc ewentualne modyfikacje mogą zachować nazwę „Caveat".
+
+Grafiki karteczek w `assets/*.png` to własne zdjęcia autora, objęte tą samą
+licencją co kod.
+
 ## Ograniczenia
 
 - Karteczka rzucona przy krawędzi ekranu może częściowo z niego wystawać;

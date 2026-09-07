@@ -17,8 +17,8 @@
 
 ## Status (ostatnia aktualizacja: 2026-09-07)
 
-Fazy 0-8 i 11 zrobione i zweryfikowane na żywym Cinnamonie; zostają fazy
-9-10 (licencja GPL-3.0, publikacja w Spices).
+Fazy 0-9 i 11 zrobione i zweryfikowane na żywym Cinnamonie; zostaje faza
+10 (publikacja w Spices).
 Ostatnia sesja (2026-09-07) dołożyła formatowanie Markdown, wybór koloru
 atramentu, tła i rozmiaru tekstu, pozycjonowanie nowej karteczki w miejscu
 menu, kursor-rączkę nad linkiem, README, ściągawkę „Formatowanie", losowy
@@ -44,8 +44,9 @@ ikony w menu i potwierdzanie usuwania.
 - ✅ Faza 6 — wybór tła i rozmiaru tekstu z menu (pola `background`/`font`).
 - ✅ Faza 7 — ściągawka „Formatowanie" w oknie modalnym.
 - ✅ Faza 8 — i18n (gettext + wybór języka z menu, `po/pl.po`).
+- ✅ Faza 9 — licencja GPL-3.0 dla kodu, OFL 1.1 dla czcionek.
 - ✅ Faza 11 — losowy obrót karteczek ±3°.
-- ⬜ Fazy 9-10 — licencja GPL-3.0, publikacja w Spices.
+- ⬜ Faza 10 — publikacja w Cinnamon Spices.
 
 ### Aktualne parametry wyglądu (`desklet.js`)
 
@@ -383,7 +384,26 @@ function _(str) { return Gettext.dgettext(UUID, str); }
   tłumaczenie przed PR-em.
 - `makepot` zbiera też `name` i `description` z `metadata.json`.
 
-### ⬜ Faza 9 — licencja GPL-3.0
+### ✅ Faza 9 — licencja GPL-3.0
+
+Zrobione: `LICENSE` (pełny GPL-3.0), nagłówki copyright w `desklet.js`,
+`karteczki_markdown.js`, `karteczki_layout.js`, `karteczki_i18n.js` i w
+skryptach `bin/`, sekcja „Licencja" w README. Kod idzie jako
+**GPL-3.0-or-later**.
+
+Czcionki dostały `assets/fonts/OFL.txt` — pełny tekst SIL Open Font License
+1.1 ze źródła fontu (repozytorium `googlefonts/caveat`). Sprawdzone w
+metadanych pliku `.ttf`: copyright „The Caveat Project Authors", licencja
+OFL, **bez Reserved Font Name**. OFL nie obejmuje programu dołączającego
+font, więc GPL-3.0 dla kodu i OFL dla `.ttf` współistnieją bez konfliktu;
+warunkiem redystrybucji jest tylko dołączenie noty i tekstu licencji — stąd
+`OFL.txt` obok plików fontu.
+
+Grafiki `assets/*.png` (własne zdjęcia autora) idą na tej samej licencji co
+kod. Zostaje pytanie do PR-a w Spices: repo jest oznaczone GPL-2.0, xlet na
+GPL-3.0 to osobne dzieło, ale warto to potwierdzić zamiast zakładać.
+
+### Poprzedni plan tej fazy (dla porządku)
 
 - `LICENSE` z pełnym tekstem GPL-3.0 w katalogu repo + krótki nagłówek
   copyright w `desklet.js`, `karteczki_markdown.js` i skryptach `bin/*.py`.

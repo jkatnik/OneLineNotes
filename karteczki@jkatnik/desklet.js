@@ -1,3 +1,15 @@
+// Karteczki — desklet Cinnamona z karteczkami samoprzylepnymi.
+// Copyright (C) 2026 Jarosław Kątnik
+//
+// Ten program jest wolnym oprogramowaniem: możesz go rozpowszechniać dalej
+// i/lub modyfikować na warunkach Powszechnej Licencji Publicznej GNU (GPL),
+// wydanej przez Free Software Foundation, w wersji 3 lub (według twojego
+// wyboru) dowolnej późniejszej. Pełny tekst licencji: plik LICENSE.
+//
+// Program rozpowszechniany jest w nadziei, że będzie użyteczny, ale BEZ
+// JAKIEJKOLWIEK GWARANCJI. Czcionki w assets/fonts/ mają własną licencję
+// (SIL Open Font License 1.1) — patrz assets/fonts/OFL.txt.
+
 const Desklet = imports.ui.desklet;
 const St = imports.gi.St;
 const GLib = imports.gi.GLib;
