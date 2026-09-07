@@ -2,7 +2,7 @@
 # OneLineNotes — installer for the Cinnamon desklet.
 # Copyright (C) 2026 Jarosław Kątnik, GPL-3.0-or-later (see LICENSE).
 #
-#   curl -fsSL https://raw.githubusercontent.com/jkatnik/oneLineNotes/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/jkatnik/OneLineNotes/main/install.sh | bash
 #
 # Run from a clone (./install.sh) and it installs from that working copy
 # instead of downloading anything.
@@ -17,7 +17,7 @@
 
 set -euo pipefail
 
-REPO="${ONELINENOTES_REPO:-jkatnik/oneLineNotes}"
+REPO="${ONELINENOTES_REPO:-jkatnik/OneLineNotes}"
 BRANCH="${ONELINENOTES_BRANCH:-main}"
 UUID="onelinenotes@jkatnik"
 

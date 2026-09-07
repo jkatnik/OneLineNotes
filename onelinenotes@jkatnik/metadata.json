@@ -2,9 +2,11 @@
     "uuid": "onelinenotes@jkatnik",
     "name": "OneLineNotes",
     "description": "One-line sticky notes on the desktop, with Markdown formatting",
+    "comments": "One note per file, Markdown formatting, notes anchored to the screen edge.\nSource and issues: https://github.com/jkatnik/OneLineNotes",
     "version": "1.0",
+    "author": "jkatnik",
+    "contributors": "Jarosław Kątnik",
     "max-instances": "-1",
     "prevent-decorations": true,
-    "author": "jkatnik",
-    "last-edited": 1788785522
+    "last-edited": 1788788323
 }

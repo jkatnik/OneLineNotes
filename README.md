@@ -1,5 +1,7 @@
 # OneLineNotes
 
+[github.com/jkatnik/OneLineNotes](https://github.com/jkatnik/OneLineNotes)
+
 A Cinnamon desklet that puts sticky notes on your desktop. Each note is a
 separate desklet instance backed by its own JSON file in
 `~/.local/share/onelinenotes/`.
@@ -15,13 +17,13 @@ Design notes and working agreements live in [PLAN.md](PLAN.md) and
 ### One command
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jkatnik/oneLineNotes/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jkatnik/OneLineNotes/main/install.sh | bash
 ```
 
 or, with wget:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/jkatnik/oneLineNotes/main/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/jkatnik/OneLineNotes/main/install.sh | bash
 ```
 
 Piping a script from the internet straight into a shell is convenient and
@@ -29,7 +31,7 @@ worth a moment's thought — if you would rather read it first (a good habit,
 not just here):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jkatnik/oneLineNotes/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/jkatnik/OneLineNotes/main/install.sh -o install.sh
 less install.sh && bash install.sh
 ```
 
@@ -50,8 +52,8 @@ desklet from *System Settings → Desklets*, or right-click the desktop and pick
 The desklet also runs straight from the development directory; there is no .deb.
 
 ```bash
-git clone <repo> onelinenotes      # any path works
-cd onelinenotes
+git clone git@github.com:jkatnik/OneLineNotes.git
+cd OneLineNotes
 
 # 1. make the desklet visible to Cinnamon
 ln -s "$PWD/onelinenotes@jkatnik" ~/.local/share/cinnamon/desklets/
