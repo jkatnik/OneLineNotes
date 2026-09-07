@@ -22,11 +22,16 @@ tych mechanizmów.
   zamieniający Markdown na Pango markup; ładowany przez `imports.searchPath`,
   więc ten sam plik testuje `tests/test_desklet_json.gjs` pod gołym `gjs`.
 - **Nemo custom action** (`~/.local/share/nemo/actions/*.nemo_action`) —
-  dodaje "Dodaj karteczkę" do menu kontekstowego tła pulpitu. To menu
-  należy do procesu `nemo-desktop`, nie do powłoki Cinnamon — desklet sam
-  w sobie nie ma dostępu do tego menu.
-- **Skrypt tworzący notatkę** (wywoływany przez akcję Nemo i przez pozycję
-  "nowa karteczka" w menu desklecika) — generuje UUID, zapisuje domyślny
+  dodaje "Dodaj karteczkę" do menu kontekstowego tła pulpitu. To menu należy
+  do procesu `nemo-desktop`, nie do powłoki Cinnamon — desklet sam w sobie nie
+  ma dostępu do tego menu. Plik zakłada sam przy pierwszym starcie (wzorzec
+  `dodaj-karteczke.nemo_action` w katalogu xleta, `__KARTECZKI__` podmieniane
+  na `DESKLET_ROOT`). Skasowanie akcji przez użytkownika jest respektowane,
+  ale wpis z martwym `Exec` (np. po przeniesieniu repo) zostaje naprawiony.
+- **Skrypty w `karteczki@jkatnik/bin/`** (wywoływane przez akcję Nemo i przez
+  pozycję "nowa karteczka" w menu desklecika) — leżą wewnątrz xleta, bo tylko
+  jego katalog trafia do użytkownika ze Spices; desklet woła je ścieżką
+  względem `DESKLET_ROOT`. Skrypt tworzący notatkę — generuje UUID, zapisuje domyślny
   JSON, dopisuje wpis do klucza gsettings `org.cinnamon enabled-desklets`.
 - **Magazyn danych**: `~/.local/share/karteczki/<uuid>.json`, jeden plik na
   karteczkę.
@@ -94,9 +99,9 @@ tych mechanizmów.
   desklecików Cinnamona.
 - Brak instalatora/paczki .deb — projekt uruchamiany z katalogu
   deweloperskiego przez symlink do `~/.local/share/cinnamon/desklets/`.
-  Publikacja w Cinnamon Spices jest w planie (PLAN.md, Faza 10) i wymusi
-  przeniesienie `bin/` do wnętrza xleta oraz rezygnację z instalowania
-  akcji Nemo spoza katalogu desletu.
+  Paczkę dla Cinnamon Spices buduje `tools/build-spice` — repo zostaje w
+  wygodnym układzie, a wymagany przez Spices powstaje na żądanie (i jest
+  sprawdzany pod kątem ich wymogów).
 - **Interfejs po angielsku, tłumaczenia przez gettext.** Wszystkie widoczne
   ciągi idą przez `_()` (`Gettext.dgettext(UUID, …)`), polski siedzi w
   `karteczki@jkatnik/po/pl.po`, a `.mo` instaluje się do

@@ -17,8 +17,8 @@
 
 ## Status (ostatnia aktualizacja: 2026-09-07)
 
-Fazy 0-9 i 11 zrobione i zweryfikowane na żywym Cinnamonie; zostaje faza
-10 (publikacja w Spices).
+Fazy 0-9 i 11 zrobione i zweryfikowane na żywym Cinnamonie. Faza 10
+(publikacja w Spices) przygotowana — zostaje `screenshot.png` i wysłanie PR-a.
 Ostatnia sesja (2026-09-07) dołożyła formatowanie Markdown, wybór koloru
 atramentu, tła i rozmiaru tekstu, pozycjonowanie nowej karteczki w miejscu
 menu, kursor-rączkę nad linkiem, README, ściągawkę „Formatowanie", losowy
@@ -46,7 +46,8 @@ ikony w menu i potwierdzanie usuwania.
 - ✅ Faza 8 — i18n (gettext + wybór języka z menu, `po/pl.po`).
 - ✅ Faza 9 — licencja GPL-3.0 dla kodu, OFL 1.1 dla czcionek.
 - ✅ Faza 11 — losowy obrót karteczek ±3°.
-- ⬜ Faza 10 — publikacja w Cinnamon Spices.
+- 🔶 Faza 10 — publikacja w Spices: paczka i wymogi gotowe, brakuje
+  `screenshot.png` i wysłania PR-a.
 
 ### Aktualne parametry wyglądu (`desklet.js`)
 
@@ -421,7 +422,39 @@ GPL-3.0 to osobne dzieło, ale warto to potwierdzić zamiast zakładać.
   GPL-3.0 nie powinno kolidować, ale warto to zapytać w PR zamiast
   zakładać.
 
-### ⬜ Faza 10 — publikacja w Cinnamon Spices
+### 🔶 Faza 10 — publikacja w Cinnamon Spices (przygotowana, PR niewysłany)
+
+Zrobione:
+- `bin/` przeniesione do `karteczki@jkatnik/bin/` — desklet woła skrypty
+  ścieżką względem `DESKLET_ROOT`, bo poza repo deweloperskim nie ma nic obok
+  katalogu xleta.
+- **Akcja Nemo zakłada się sama** przy pierwszym starcie (decyzja użytkownika
+  z 2026-09-07): wzorzec `dodaj-karteczke.nemo_action` leży w katalogu xleta,
+  `__KARTECZKI__` jest podmieniane na `DESKLET_ROOT`. Skasowanie akcji przez
+  użytkownika jest respektowane (flaga `nemoActionInstalled` w
+  `settings.json`), ale wpis z martwym `Exec` zostaje naprawiony — inaczej po
+  przeniesieniu repo pozycja w menu pulpitu po cichu przestaje działać. Tak
+  właśnie było po przeniesieniu `bin/`: akcja z 6 września wskazywała starą
+  ścieżkę, naprawione automatycznie przy starcie.
+- `info.json` (`{"author": "jkatnik"}`), `icon.png` (96×96, wygenerowana z
+  assetu karteczki), `author` i `last-edited` w `metadata.json`.
+- `tools/build-spice` — buduje układ wymagany przez Spices do `build/` i
+  sprawdza wymogi: `files/` tylko z katalogiem UUID, obecność
+  `screenshot.png`, komplet pól `metadata.json`, brak plików `.ttf`.
+- Menu „Czcionka" pokazuje tylko kroje faktycznie zainstalowane
+  (`PangoCairo.FontMap`), bo paczka ze Spices nie wozi `.ttf`.
+- README przetłumaczone na angielski (2026-09-07) — trafia do repo Spices,
+  gdzie językiem jest angielski. PLAN.md i AGENTS.md zostają po polsku.
+
+Zostało:
+- **`screenshot.png`** — zrzut karteczek na pulpicie. Nie da się go zrobić,
+  dopóki karty są przykryte oknami; do zrobienia przez użytkownika.
+- Wysłanie PR-a (fork `linuxmint/cinnamon-spices-desklets`, jeden xlet na PR)
+  i zapytanie maintainerów o dwie rzeczy: licencję GPL-3.0 przy repo
+  oznaczonym GPL-2.0 oraz to, czy desklet może zakładać plik poza swoim
+  katalogiem (akcja Nemo).
+
+### Pierwotny plan tej fazy (dla porządku)
 
 Wymagany układ katalogów (z README repozytorium Spices):
 

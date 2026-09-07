@@ -27,6 +27,7 @@ const CheckBox = imports.ui.checkBox;
 const ByteArray = imports.byteArray;
 
 const Gettext = imports.gettext;
+const PangoCairo = imports.gi.PangoCairo;
 
 const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
@@ -39,6 +40,8 @@ const I18n = imports.karteczki_i18n;
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
 const IMG_DIR = DESKLET_ROOT + "/img";
 const PO_DIR = DESKLET_ROOT + "/po";
+// Skrypty leżą wewnątrz xleta — poza repo deweloperskim nie ma nic obok niego.
+const BIN_DIR = DESKLET_ROOT + "/bin";
 // Ustawienia wspólne dla wszystkich karteczek (język, potwierdzanie usuwania)
 // — jeden plik obok notatek.
 const SETTINGS_PATH = DATA_DIR + "/settings.json";
@@ -108,6 +111,19 @@ const FONT_FAMILIES = [
 
 function fontFamily(spec) {
     return fontSpec(spec).replace(/\s+\d+$/, "");
+}
+
+// Menu pokazuje tylko kroje faktycznie zainstalowane: paczka ze Spices nie
+// wozi plików .ttf (zakaz binariów poza obrazami), więc użytkownik może mieć
+// tylko część z nich. Gdy nie ma żadnego — pokazujemy pełną listę, żeby menu
+// nie zostało puste, a Pango i tak podstawi zamiennik.
+function availableFontFamilies() {
+    let zainstalowane = {};
+    PangoCairo.FontMap.get_default().list_families().forEach(function (rodzina) {
+        zainstalowane[rodzina.get_name()] = true;
+    });
+    let lista = FONT_FAMILIES.filter(function (rodzina) { return zainstalowane[rodzina]; });
+    return lista.length ? lista : FONT_FAMILIES;
 }
 
 function fontSizeOf(spec) {
@@ -190,6 +206,40 @@ function fontSpec(font) {
     return /\d$/.test(font || "") ? font : DEFAULT_FONT;
 }
 
+// "Dodaj karteczkę" w menu tła pulpitu należy do Nemo, nie do powłoki, więc
+// desklet musi położyć plik akcji poza swoim katalogiem. Robi to raz —
+// skasowanie akcji przez użytkownika ma zostać skasowaniem, nie zaproszeniem
+// do odtworzenia jej przy każdym starcie.
+function installNemoAction() {
+    let cel = GLib.get_home_dir() + "/.local/share/nemo/actions/dodaj-karteczke.nemo_action";
+    let obecna = readText(cel);
+
+    if (obecna !== null) {
+        // Akcja jest — ale po przeniesieniu repo jej Exec może wskazywać
+        // nieistniejący skrypt. Taki martwy wpis naprawiamy, bo inaczej
+        // pozycja w menu pulpitu po cichu przestaje działać.
+        let exec = /^Exec=(\S+)/m.exec(obecna);
+        if (exec && GLib.file_test(exec[1], GLib.FileTest.EXISTS)) {
+            getSettings().nemoActionInstalled = true;
+            saveSettings();
+            return;
+        }
+    } else if (getSettings().nemoActionInstalled) {
+        // Zainstalowaliśmy ją kiedyś, a teraz jej nie ma: użytkownik ją
+        // skasował. Nie wracamy z nią przy każdym starcie.
+        return;
+    }
+
+    let wzorzec = readText(DESKLET_ROOT + "/dodaj-karteczke.nemo_action");
+    if (!wzorzec) return;
+
+    GLib.mkdir_with_parents(GLib.get_home_dir() + "/.local/share/nemo/actions", 0o755);
+    GLib.file_set_contents(cel, wzorzec.replace(/__KARTECZKI__/g, DESKLET_ROOT));
+    global.log(UUID + ": " + (obecna === null ? "zainstalowano" : "naprawiono") + " akcję Nemo w " + cel);
+    getSettings().nemoActionInstalled = true;
+    saveSettings();
+}
+
 function randomRotation() {
     return Math.round((Math.random() * 2 - 1) * MAX_ROTATION * 100) / 100;
 }
@@ -225,6 +275,7 @@ MyDesklet.prototype = {
         Desklet.Desklet.prototype._init.call(this, metadata, desklet_id);
 
         loadLanguage();
+        installNemoAction();
         this.notePath = null;
         this.note = null;
         this._loadNote();
@@ -592,7 +643,7 @@ MyDesklet.prototype = {
             Lang.bind(this, this._setBackground));
 
         this._addChoiceMenu(_("Font"), "font-select-symbolic",
-            FONT_FAMILIES.map(function (family) { return { name: family, value: family }; }),
+            availableFontFamilies().map(function (family) { return { name: family, value: family }; }),
             Lang.bind(this, function (family) { return fontFamily(this.note.font) === family; }),
             Lang.bind(this, this._setFontFamily));
 
@@ -771,12 +822,12 @@ MyDesklet.prototype = {
 
     _remove: function () {
         Util.spawnCommandLine(
-            DESKLET_ROOT + "/../bin/karteczki-usun " + this.instance_id
+            BIN_DIR + "/karteczki-usun " + this.instance_id
         );
     },
 
     _onNewClicked: function () {
-        let cmd = DESKLET_ROOT + "/../bin/karteczki-nowa";
+        let cmd = BIN_DIR + "/karteczki-nowa";
         if (this._menuPoint) cmd += " " + this._menuPoint[0] + " " + this._menuPoint[1];
         Util.spawnCommandLine(cmd);
     },

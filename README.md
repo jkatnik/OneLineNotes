@@ -1,130 +1,135 @@
-# Karteczki
+# Sticky Notes (karteczki@jkatnik)
 
-Desklet Cinnamona z karteczkami samoprzylepnymi na pulpicie. Każda
-karteczka to osobna instancja desletu i osobny plik JSON w
+A Cinnamon desklet that puts sticky notes on your desktop. Each note is a
+separate desklet instance backed by its own JSON file in
 `~/.local/share/karteczki/`.
 
-Szczegóły projektowe: [PLAN.md](PLAN.md), zasady pracy nad kodem:
-[AGENTS.md](AGENTS.md).
+The note looks like a real piece of paper because it *is* a photo of one —
+the background is a PNG rendered 1:1, not drawn programmatically.
 
-## Instalacja
+Design notes and working agreements live in [PLAN.md](PLAN.md) and
+[AGENTS.md](AGENTS.md) — both in Polish, the project's working language.
 
-Projekt działa prosto z katalogu deweloperskiego — nie ma paczki .deb.
+## Installation
+
+The desklet runs straight from the development directory; there is no .deb.
 
 ```bash
-git clone <repo> ~/code/linux/karteczki      # albo dowolna inna ścieżka
+git clone <repo> ~/code/linux/karteczki      # any path works
 cd ~/code/linux/karteczki
 
-# 1. desklet widoczny dla Cinnamona
+# 1. make the desklet visible to Cinnamon
 ln -s "$PWD/karteczki@jkatnik" ~/.local/share/cinnamon/desklets/
 
-# 2. czcionki (zbundlowane w repo, wszystkie z polskimi znakami)
+# 2. fonts (optional but recommended — see "Appearance" below)
 mkdir -p ~/.local/share/fonts
 cp assets/fonts/*.ttf ~/.local/share/fonts/
 fc-cache -f
 
-# 3. tłumaczenia (interfejs jest po angielsku, polski w po/pl.po)
+# 3. translations (the interface is English; Polish lives in po/pl.po)
 for po in karteczki@jkatnik/po/*.po; do
     lang=$(basename "$po" .po)
     mkdir -p ~/.local/share/locale/$lang/LC_MESSAGES
     msgfmt "$po" -o ~/.local/share/locale/$lang/LC_MESSAGES/karteczki@jkatnik.mo
 done
-
-# 4. "Dodaj karteczkę" w menu kontekstowym pulpitu
-mkdir -p ~/.local/share/nemo/actions
-sed "s|__KARTECZKI__|$PWD|" dodaj-karteczke.nemo_action \
-    > ~/.local/share/nemo/actions/dodaj-karteczke.nemo_action
 ```
 
-Potem restart powłoki Cinnamona: `Alt+F2`, wpisz `r`, Enter. Jest
-**wymagany po instalacji czcionki** — działający proces Cinnamona nie widzi
-nowo dodanych fontów (Pango trzyma listę w pamięci od startu).
+Then restart the Cinnamon shell: `Alt+F2`, type `r`, Enter. This is
+**required after installing fonts** — a running Cinnamon process does not see
+newly added ones, because Pango caches the family list at startup.
 
-Pierwsza karteczka: prawoklik na pulpicie → „Dodaj karteczkę", albo
-`bin/karteczki-nowa` z terminala.
+Add the desklet through *System Settings → Desklets*, or create the first note
+from a terminal with `karteczki@jkatnik/bin/karteczki-nowa`.
 
-## Obsługa
+The **"Add note" entry in the desktop context menu installs itself**: on its
+first run the desklet writes the action into `~/.local/share/nemo/actions/`.
+That menu belongs to Nemo rather than to the Cinnamon shell, which is why the
+desklet cannot provide it from the inside. If you delete the action it stays
+deleted — the desklet records that its one-time install already happened.
 
-| Akcja | Efekt |
+## Usage
+
+| Action | Result |
 |---|---|
-| Dwuklik w karteczkę | wejście w edycję (widać surowy Markdown) |
-| Enter | zapis i wyjście z edycji |
-| Escape | wyjście bez zapisu |
-| Klik poza karteczką | zapis i wyjście z edycji |
-| Przeciągnięcie | zmiana pozycji (zapisywana od razu) |
-| Ctrl+klik w link | otwarcie w przeglądarce (`xdg-open`) |
-| Prawoklik | menu: nowa karteczka, usuń — a pod separatorem ustawienia: kolor atramentu, tło, czcionka, rozmiar tekstu, język, formatowanie |
+| Double-click a note | edit it (raw Markdown becomes visible) |
+| Enter | save and leave edit mode |
+| Escape | leave without saving |
+| Click outside the note | save and leave edit mode |
+| Drag | move the note (position saved immediately) |
+| Ctrl+click a link | open it in the browser (`xdg-open`) |
+| Right-click | menu: new note, remove — then, below a separator, appearance settings |
 
-„Usuń" pyta o potwierdzenie; checkbox **Nie pytaj ponownie** wyłącza pytanie
-na stałe (zapisywane w `settings.json`, wspólne dla wszystkich karteczek).
-Zaznaczenie go i kliknięcie „Anuluj" nic nie zmienia — liczy się dopiero
-potwierdzone usunięcie. Żeby przywrócić pytanie, usuń z pliku pole
-`skipRemoveConfirmation`.
+A new note appears where the context menu was opened.
 
-Nowa karteczka pojawia się tam, gdzie rozwinięto menu kontekstowe.
+**Remove** asks for confirmation; the **Don't ask again** checkbox disables the
+prompt for good (stored in `settings.json`, shared by all notes). Ticking it
+and then pressing Cancel changes nothing — only a confirmed removal counts. To
+bring the prompt back, delete the `skipRemoveConfirmation` field from that file.
 
-Karteczka stojąca **wyraźnie przy prawej lub dolnej krawędzi swojego
-monitora** (środek w skrajnej ⅓ tego monitora) zapamiętuje odległość od tej
-krawędzi zamiast od lewego górnego rogu pulpitu — w polu `anchor`. Po
-odpięciu monitora albo zmianie rozdzielczości taka karteczka zostaje przy
-swojej krawędzi zamiast wyjechać poza ekran czy wylądować w połowie pulpitu;
-dzieje się to od razu, bez restartu powłoki. Oś bez kotwicy nie jest ruszana,
-a kotwicę dostaje każda karta przy krawędzi — także te utworzone wcześniej.
+A note sitting **clearly against the right or bottom edge of its monitor** (its
+centre within the outer third) remembers its distance from that edge instead of
+from the desktop's top-left corner, in the `anchor` field. When a monitor is
+unplugged or the resolution changes, such a note stays at its edge rather than
+sliding off-screen or landing in the middle of the desktop — and it happens
+immediately, without restarting the shell. The unanchored axis is left alone,
+and every note near an edge gets an anchor, including ones created earlier.
 
-Przeciągać da się za obszar karteczki **poza tekstem** — klik w sam tekst
-przechwytuje Clutter. Przy krótkiej treści marginesu jest dużo, przy długiej
-mało.
+Dragging works from the part of the note **outside the text** — a click on the
+text itself is captured by Clutter. Short notes leave plenty of margin, long
+ones leave little.
 
-### Formatowanie treści
+### Text formatting
 
 ```markdown
-**pogrubienie**   *kursywa*   __podkreślenie__   ~~przekreślenie~~
-[tekst linku](https://example.com)
+**bold**   *italic*   __underline__   ~~strikethrough~~
+[link text](https://example.com)
 ```
 
-Bez zagnieżdżania (`**__oba naraz__**` nie zadziała), bez nagłówków, list i
-cytatów. W pliku JSON zapisywany jest zawsze surowy Markdown. Tę samą
-ściągawkę pokazuje pozycja „Formatowanie" w menu kontekstowym.
+No nesting (`**__both at once__**` will not work), no headings, lists or
+quotes. The JSON file always stores raw Markdown. The same cheat sheet is
+available from the **Formatting** entry in the context menu.
 
-### Wygląd karteczki
+### Appearance
 
-- **Tło** — podmenu „Tło" listuje pliki PNG z `karteczki@jkatnik/img/`.
-  Karteczka przyjmuje rozmiar swojego tła (dziś: 350×100 i 395×158), więc
-  własny asset wystarczy wrzucić do tego katalogu w docelowym rozmiarze, z
-  przezroczystym tłem. Skalowanie spłaszcza fakturę papieru — lepiej
-  przygotować plik 1:1 niż liczyć na pomniejszanie.
-- **Rozmiar tekstu** — podmenu Mała / Średnia / Duża (16/20/24).
-- **Obrót** — każda karteczka dostaje przy tworzeniu losowy kąt ±3°, żeby
-  wyglądały na rozrzucone. Kąt siedzi w polu `rotation` i nie zmienia się
-  między restartami; `"rotation": 0` prostuje karteczkę.
-- **Czcionka** — podmenu „Czcionka" z krojami zbundlowanymi w repo:
+- **Background** — the *Background* submenu lists the PNG files in
+  `karteczki@jkatnik/img/`. A note takes the size of its background (currently
+  354×104 and 395×158), so adding your own is a matter of dropping a
+  transparent PNG of the target size into that directory. Scaling flattens the
+  paper texture, so prepare the file 1:1 instead of relying on downscaling.
+- **Font** — the *Font* submenu lists the typefaces bundled in `assets/fonts/`:
   Architects Daughter, Caveat, Gloria Hallelujah, Indie Flower, Shadows Into
-  Light. Wszystkie mają komplet polskich znaków. Rodzina i rozmiar
-  siedzą w jednym polu `font` (opis Pango, np. `"Caveat 20"`), więc zmiana
-  jednego zachowuje drugie; ręcznie wpisana rodzina spoza listy też zadziała,
-  o ile jest zainstalowana w systemie.
+  Light. All of them cover Polish diacritics. Only the ones actually installed
+  are listed, so skipping step 2 of the installation simply means fewer entries.
 
-  Prawdziwą odmianę pogrubioną ma tylko Caveat — w pozostałych krojach
-  `**pogrubienie**` Pango syntetyzuje, co widać.
+  Only Caveat ships a real bold face — in the other typefaces `**bold**` is
+  synthesised by Pango, and it shows.
+- **Text size** — Small / Medium / Large (16/20/24). Family and size share a
+  single `font` field (a Pango description such as `"Caveat 20"`), so changing
+  one keeps the other; a family typed in by hand also survives a size change.
+- **Ink colour** — black, red, blue (default) or green.
+- **Rotation** — every note gets a random angle of ±3° when created, so they
+  look scattered rather than aligned to a grid. The angle lives in `rotation`
+  and does not change between restarts; `"rotation": 0` straightens a note out.
 
-## Tłumaczenia
+## Translations
 
-Interfejs jest po angielsku, tłumaczenia leżą w `karteczki@jkatnik/po/`
-(dziś: `pl.po`).
+The interface is English; translations live in `karteczki@jkatnik/po/`
+(currently `pl.po`).
 
-Język wybiera się w menu kontekstowym karteczki („Język"): *Język systemu*
-bierze go z sesji (`LANGUAGE`/`LANG`) przez gettext, a konkretny język można
-wymusić niezależnie od ustawień systemu. Wybór jest wspólny dla wszystkich
-karteczek — zapisuje się w `~/.local/share/karteczki/settings.json` i
-przemalowuje je od razu, bez restartu powłoki.
+The language is chosen from the note's context menu (*Language*). *System
+language* follows the session (`LANGUAGE`/`LANG`) through gettext, while a
+specific language can be forced regardless of the system setting. The choice is
+shared by every note — it is stored in
+`~/.local/share/karteczki/settings.json` and repaints them immediately, with no
+shell restart.
 
-Przy „języku systemu" tłumaczenia czyta gettext z `~/.local/share/locale`,
-więc po każdej zmianie `.po` trzeba przebudować `.mo` (pętla z kroku 3
-instalacji). Wymuszony język czyta plik `.po` wprost z katalogu desletu —
-gettext nie potrafi tłumaczyć na język inny niż locale procesu, a proces jest
-jeden dla całego pulpitu.
+Under *System language* the translations come from `~/.local/share/locale`
+through gettext, so after editing a `.po` file the `.mo` has to be rebuilt (the
+loop from installation step 3). A forced language is read straight from the
+`.po` file in the desklet's directory: gettext can only translate into the
+process locale, and the whole desktop shares a single Cinnamon process.
 
-Po dopisaniu nowego ciągu w kodzie zaktualizuj szablon i tłumaczenia:
+After adding a new string to the code, refresh the template and translations:
 
 ```bash
 xgettext --language=JavaScript --keyword=_ --from-code=UTF-8 --no-wrap \
@@ -132,84 +137,100 @@ xgettext --language=JavaScript --keyword=_ --from-code=UTF-8 --no-wrap \
 msgmerge -U karteczki@jkatnik/po/pl.po karteczki@jkatnik/po/karteczki@jkatnik.pot
 ```
 
-`cinnamon-xlet-makepot` robi to samo i dodatkowo zbiera `name`/`description`
-z `metadata.json`, ale wymaga pakietu `python3-polib`, którego nie ma w tym
-systemie — te dwa ciągi są w `.pot` dopisane ręcznie.
+`cinnamon-xlet-makepot` does the same and additionally collects
+`name`/`description` from `metadata.json`, but it needs the `python3-polib`
+package, which is not installed here — those two strings are appended to the
+`.pot` by hand.
 
-## Skrypty
-
-```bash
-bin/karteczki-nowa            # nowa karteczka pod kursorem
-bin/karteczki-nowa 800 400    # nowa karteczka w danym punkcie ekranu
-bin/karteczki-usun 7          # usuwa karteczkę o danym instance_id
-```
-
-`instance_id` widać w `gsettings get org.cinnamon enabled-desklets` oraz w
-`~/.local/share/karteczki/instances.json` (mapowanie na UUID pliku notatki).
-
-## Testy
+## Scripts
 
 ```bash
-python3 -m unittest discover -s tests -q    # CRUD, gsettings zamockowane
-gjs tests/test_desklet_json.gjs             # JSON, kolory, Markdown → Pango
+karteczki@jkatnik/bin/karteczki-nowa            # new note under the pointer
+karteczki@jkatnik/bin/karteczki-nowa 800 400    # new note at a screen position
+karteczki@jkatnik/bin/karteczki-usun 7          # remove the note with that instance_id
 ```
 
-**Przed każdą zmianą w `desklet.js` uruchom kontrolę składni** — błąd w
-kodzie desletu potrafi ubić całą powłokę Cinnamona (zdarzyło się dwa razy,
-SIGSEGV), a nie tylko rzucić wyjątkiem:
+The scripts live inside the xlet because that is the only directory shipped to
+users; the desklet calls them by a path relative to itself.
+
+`instance_id` shows up in `gsettings get org.cinnamon enabled-desklets` and in
+`~/.local/share/karteczki/instances.json`, which maps it to the note's UUID.
+
+## Tests
+
+```bash
+python3 -m unittest discover -s tests -q    # CRUD, gsettings mocked out
+gjs tests/test_desklet_json.gjs             # JSON, colours, Markdown, layout, .po parser
+```
+
+**Syntax-check `desklet.js` before every change** — an error in desklet code
+can take down the whole Cinnamon shell (it happened twice, SIGSEGV) instead of
+merely throwing:
 
 ```bash
 gjs -c "$(printf 'function __check(){\n%s\n}\nprint("PARSE OK");' "$(cat karteczki@jkatnik/desklet.js)")"
 ```
 
-Ratunek, gdy powłoka jednak padnie: `DISPLAY=:0 cinnamon --replace &`
-z terminala (Guake, TTY, ssh).
+If the shell does go down anyway: `DISPLAY=:0 cinnamon --replace &` from a
+terminal (Guake, a TTY, or ssh).
 
-### Ręczny scenariusz testowy
+### Manual test scenario
 
-Po zmianach w desklecie warto przejść całą ścieżkę:
+Worth walking through after changing the desklet:
 
-1. Prawoklik na pulpicie → „Dodaj karteczkę" — karteczka pojawia się w
-   miejscu kliknięcia, z treścią „Lorem ipsum".
-2. Dwuklik → wpisz `**test** [link](https://example.com)` → Enter —
-   pogrubienie i niebieski link renderują się od razu.
-3. Najedź na link — kursor zmienia się w rączkę; Ctrl+klik otwiera stronę.
-4. Przeciągnij karteczkę w inne miejsce.
-5. Prawoklik → „Kolor atramentu" → Czerwony, potem „Tło" → drugi wzór i
-   „Rozmiar tekstu" → Duża: kolor, rozmiar karty i wielkość pisma zmieniają
-   się od razu, kropka przeskakuje przy aktywnej pozycji. Zaznacz tekst w
-   edycji — ma zostać czytelny (biały na kolorze atramentu).
-6. Prawoklik → „Nowa karteczka" — druga karteczka wychodzi w miejscu, gdzie
-   rozwinięto menu.
-7. `Alt+F2`, `r` — po restarcie powłoki obie karteczki wracają na swoje
-   pozycje, z zachowaną treścią, kolorem i **tym samym kątem obrotu**.
-8. Prawoklik → „Usuń" na obu — znikają z pulpitu, a ich pliki z
-   `~/.local/share/karteczki/`.
+1. Right-click the desktop → *Add note* — a note appears where you clicked,
+   containing "Lorem ipsum".
+2. Double-click it, type `**test** [link](https://example.com)`, press Enter —
+   the bold text and the blue link render immediately.
+3. Hover the link: the cursor turns into a hand; Ctrl+click opens the page.
+4. Drag the note somewhere else.
+5. Right-click → *Ink colour* → Red, then *Background* → the other pattern,
+   *Font* → another typeface and *Text size* → Large. Colour, card size and
+   lettering change at once, and the dot follows the active entry. Select text
+   while editing — it has to stay readable (white on the ink colour).
+6. Right-click → *New note* — the second note appears where the menu was opened.
+7. `Alt+F2`, `r` — after the shell restarts both notes return to their
+   positions with their content, colour and **rotation angle** intact.
+8. Right-click → *Remove* on both — they disappear from the desktop, and their
+   files from `~/.local/share/karteczki/`.
 
-## Licencja
+## Publishing to Cinnamon Spices
 
-Kod: **GPL-3.0-or-later** (pełny tekst w [LICENSE](LICENSE)).
+The repository keeps a convenient layout for development, while Spices requires
+a fixed one. Rather than reshaping the repository, the package is built on
+demand:
 
-Czcionki w `assets/fonts/` mają **własną licencję** — SIL Open Font License
-1.1 (`assets/fonts/OFL.txt`); copyright: The Caveat Project Authors (Caveat)
-i Kimberly Geswein (Architects Daughter, Gloria Hallelujah, Indie Flower,
-Shadows Into Light). To nie
-jest konflikt: OFL nie obejmuje programu, który font dołącza, więc obie
-licencje po prostu współistnieją w repozytorium. Warunki OFL, o których warto
-pamiętać przy redystrybucji: font nie może być sprzedawany samodzielnie, a
-każda kopia musi nieść notę copyright i pełny tekst licencji — stąd `OFL.txt`
-obok plików `.ttf`. Font nie ma zastrzeżonej nazwy (Reserved Font Name),
-więc ewentualne modyfikacje mogą zachować nazwę „Caveat".
+```bash
+tools/build-spice          # writes build/karteczki@jkatnik/
+```
 
-Grafiki karteczek w `assets/*.png` to własne zdjęcia autora, objęte tą samą
-licencją co kod.
+The script also checks the requirements that are easy to trip over: `files/`
+containing nothing but the UUID directory, the presence of `screenshot.png`,
+the required `metadata.json` fields, and the absence of `.ttf` files — Spices
+forbids pre-compiled blobs other than images, which is why the fonts stay out
+of the package and the desklet falls back to whatever is installed.
 
-## Ograniczenia
+## Licence
 
-- Karteczka rzucona przy krawędzi ekranu może częściowo z niego wystawać;
-  pozycję spoza obszaru pulpitu Cinnamon przestawia na siatkę 25 px.
-- Z menu wybiera się tylko kroje zbundlowane w repo; dowolny font
-  systemowy trzeba wpisać ręcznie w pole `font` notatki.
-- `dodaj-karteczke.nemo_action` zawiera bezwzględną ścieżkę do
-  `bin/karteczki-nowa` — po przeniesieniu repo trzeba go wygenerować
-  ponownie (krok 3 instalacji).
+Code: **GPL-3.0-or-later**, full text in [LICENSE](LICENSE).
+
+The fonts in `assets/fonts/` carry **their own licence** — SIL Open Font
+License 1.1 (`assets/fonts/OFL.txt`); copyright: The Caveat Project Authors
+(Caveat) and Kimberly Geswein (Architects Daughter, Gloria Hallelujah, Indie
+Flower, Shadows Into Light). This is not a conflict: the OFL does not cover the
+program that ships a font, so the two licences simply coexist here. Worth
+remembering when redistributing — a font may not be sold on its own, and every
+copy must carry its copyright notice and the full licence text, hence `OFL.txt`
+next to the `.ttf` files.
+
+The note photographs in `assets/*.png` are the author's own work, under the
+same licence as the code.
+
+## Limitations
+
+- A note dropped near a screen edge can stick out past it; a position outside
+  the desktop area gets snapped by Cinnamon to a 25 px grid.
+- The font menu only offers the typefaces bundled with the project; any other
+  system font has to be typed into the note's `font` field by hand.
+- The drop shadow is baked into the background PNG rather than rendered by the
+  GPU, so it rotates together with the paper.

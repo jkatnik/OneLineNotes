@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bin"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "karteczki@jkatnik" / "bin"))
 from karteczki_common import create_note, delete_note, DESKLET_UUID
 
 

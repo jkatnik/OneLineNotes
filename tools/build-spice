@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+# Karteczki — desklet Cinnamona z karteczkami samoprzylepnymi.
+# Copyright (C) 2026 Jarosław Kątnik
+#
+# Ten program jest wolnym oprogramowaniem: możesz go rozpowszechniać dalej
+# i/lub modyfikować na warunkach Powszechnej Licencji Publicznej GNU (GPL),
+# wydanej przez Free Software Foundation, w wersji 3 lub (według twojego
+# wyboru) dowolnej późniejszej. Pełny tekst licencji: plik LICENSE.
+
+"""Buduje katalog w układzie wymaganym przez cinnamon-spices-desklets.
+
+    tools/build-spice [katalog docelowy]      # domyślnie: build/
+
+Repozytorium deweloperskie ma wygodny układ (assets/, tests/, tools/), a
+Spices wymaga sztywnego:
+
+    UUID/info.json
+    UUID/screenshot.png
+    UUID/README.md
+    UUID/files/UUID/...        <- files/ może zawierać TYLKO katalog UUID
+
+Zamiast przebudowywać repo pod ten wymóg, paczka powstaje na żądanie.
+
+Czcionek .ttf świadomie nie kopiujemy: zasady Spices zabraniają
+prekompilowanych blobów poza obrazami. Desklet działa bez nich — menu
+pokazuje tylko kroje faktycznie zainstalowane w systemie, a README opisuje
+ręczną instalację.
+"""
+import json
+import pathlib
+import shutil
+import sys
+
+REPO = pathlib.Path(__file__).resolve().parent.parent
+UUID = "karteczki@jkatnik"
+
+# Co trafia do paczki (reszta katalogu xleta zostaje w repo deweloperskim).
+PLIKI_XLETA = [
+    "metadata.json",
+    "desklet.js",
+    "karteczki_markdown.js",
+    "karteczki_layout.js",
+    "karteczki_i18n.js",
+    "icon.png",
+    "dodaj-karteczke.nemo_action",
+]
+KATALOGI_XLETA = ["img", "po", "bin"]
+
+
+def zbuduj(cel: pathlib.Path) -> pathlib.Path:
+    korzen = cel / UUID
+    if korzen.exists():
+        shutil.rmtree(korzen)
+    pliki = korzen / "files" / UUID
+    pliki.mkdir(parents=True)
+
+    zrodlo = REPO / UUID
+    for nazwa in PLIKI_XLETA:
+        shutil.copy2(zrodlo / nazwa, pliki / nazwa)
+    for nazwa in KATALOGI_XLETA:
+        shutil.copytree(
+            zrodlo / nazwa,
+            pliki / nazwa,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+        )
+
+    shutil.copy2(REPO / "info.json", korzen / "info.json")
+    shutil.copy2(REPO / "README.md", korzen / "README.md")
+    zrzut = REPO / "screenshot.png"
+    if zrzut.exists():
+        shutil.copy2(zrzut, korzen / "screenshot.png")
+    return korzen
+
+
+def sprawdz(korzen: pathlib.Path) -> list:
+    """Wymogi, o które łatwo się potknąć przy pierwszym PR-ze."""
+    bledy = []
+    zawartosc_files = [p.name for p in (korzen / "files").iterdir()]
+    if zawartosc_files != [UUID]:
+        bledy.append(f"files/ musi zawierać tylko {UUID}, jest: {zawartosc_files}")
+
+    if not (korzen / "screenshot.png").exists():
+        bledy.append("brak screenshot.png (wymagany przez Spices)")
+
+    metadata = json.loads((korzen / "files" / UUID / "metadata.json").read_text())
+    for pole in ("uuid", "name", "description", "version", "author", "last-edited"):
+        if pole not in metadata:
+            bledy.append(f"metadata.json bez pola {pole}")
+
+    ttf = list((korzen / "files").rglob("*.ttf"))
+    if ttf:
+        bledy.append(f"pliki .ttf w paczce ({len(ttf)}) — Spices zabrania blobów")
+
+    return bledy
+
+
+if __name__ == "__main__":
+    cel = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / "build"
+    korzen = zbuduj(cel)
+    print(f"zbudowano: {korzen}")
+
+    bledy = sprawdz(korzen)
+    if bledy:
+        print("\nDo poprawy przed wysłaniem PR-a:")
+        for b in bledy:
+            print(" -", b)
+        sys.exit(1)
+    print("układ zgodny z wymogami Spices")
