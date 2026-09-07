@@ -14,9 +14,13 @@ tych mechanizmów.
 
 ## Architektura (skrót)
 
-- **Desklet** (`desklet.js`, `metadata.json` z `"multiInstance": true`) —
-  jedna instancja = jedna karteczka. `decoration: false`, żeby nie było
-  paska tytułowego Cinnamona nad zdjęciem kartonika.
+- **Desklet** (`desklet.js`, `metadata.json` z `"max-instances": "-1"`) —
+  jedna instancja = jedna karteczka. `"prevent-decorations": true`, żeby nie
+  było paska tytułowego Cinnamona nad zdjęciem kartonika. (To realne nazwy
+  kluczy — nie `multiInstance`/`decoration` z pierwotnego planu.)
+- **`karteczki_markdown.js`** — czysty moduł (bez importów Cinnamona)
+  zamieniający Markdown na Pango markup; ładowany przez `imports.searchPath`,
+  więc ten sam plik testuje `tests/test_desklet_json.gjs` pod gołym `gjs`.
 - **Nemo custom action** (`~/.local/share/nemo/actions/*.nemo_action`) —
   dodaje "Dodaj karteczkę" do menu kontekstowego tła pulpitu. To menu
   należy do procesu `nemo-desktop`, nie do powłoki Cinnamon — desklet sam
@@ -52,8 +56,8 @@ tych mechanizmów.
   Fonts, żeby nie zależeć od ręcznego kroku. Nadal bez kodu rejestrującego
   font w fontconfig w runtime — sama obecność plików `.ttf` w
   `~/.local/share/fonts` wystarcza, Pango znajdzie je przez zwykłe
-  wyszukiwanie po nazwie rodziny (`font_name: "Caveat 16"` w
-  `desklet.js`). Uwaga: proces Cinnamona musi zostać zrestartowany po
+  wyszukiwanie po nazwie rodziny (dziś rodzina i rozmiar biorą się z pola
+  `font` notatki, domyślnie `"Caveat 20"`). Uwaga: proces Cinnamona musi zostać zrestartowany po
   instalacji nowego pliku fontu — już działający proces nie widzi nowo
   dodanych czcionek bez restartu (fontconfig cache'uje listę w pamięci).
 - **Format `enabled-desklets`** to lista stringów `"UUID:instance_id:X:Y"`
@@ -73,6 +77,11 @@ tych mechanizmów.
   desklecików Cinnamona.
 - Brak instalatora/paczki .deb — projekt uruchamiany z katalogu
   deweloperskiego przez symlink do `~/.local/share/cinnamon/desklets/`.
+  Publikacja w Cinnamon Spices jest w planie (PLAN.md, Faza 10) i wymusi
+  przeniesienie `bin/` do wnętrza xleta oraz rezygnację z instalowania
+  akcji Nemo spoza katalogu desletu.
+- Interfejs jest dziś po polsku, na sztywno. i18n przez gettext to Faza 8 —
+  wtedy `msgid` przechodzą na angielski, a polski wraca jako `po/pl.po`.
 
 ## Konwencje
 

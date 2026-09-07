@@ -120,12 +120,14 @@ Po zmianach w desklecie warto przejść całą ścieżkę:
    pogrubienie i niebieski link renderują się od razu.
 3. Najedź na link — kursor zmienia się w rączkę; Ctrl+klik otwiera stronę.
 4. Przeciągnij karteczkę w inne miejsce.
-5. Prawoklik → „Kolor atramentu" → Czerwony — tekst zmienia kolor,
-   kropka przeskakuje przy pozycji menu.
+5. Prawoklik → „Kolor atramentu" → Czerwony, potem „Tło" → drugi wzór i
+   „Rozmiar tekstu" → Duża: kolor, rozmiar karty i wielkość pisma zmieniają
+   się od razu, kropka przeskakuje przy aktywnej pozycji. Zaznacz tekst w
+   edycji — ma zostać czytelny (biały na kolorze atramentu).
 6. Prawoklik → „Nowa karteczka" — druga karteczka wychodzi w miejscu, gdzie
    rozwinięto menu.
 7. `Alt+F2`, `r` — po restarcie powłoki obie karteczki wracają na swoje
-   pozycje, z zachowaną treścią i kolorem.
+   pozycje, z zachowaną treścią, kolorem i **tym samym kątem obrotu**.
 8. Prawoklik → „Usuń" na obu — znikają z pulpitu, a ich pliki z
    `~/.local/share/karteczki/`.
 

@@ -13,7 +13,7 @@
    podkreślenie, hiperłącze.
 8. Zapis: jeden plik JSON na karteczkę w `~/.local/share/karteczki/`.
 9. Schemat JSON: treść, kolor, czcionka, pozycja, data utworzenia, data
-   modyfikacji, tło.
+   modyfikacji, tło, kąt obrotu.
 
 ## Status (ostatnia aktualizacja: 2026-09-07)
 
@@ -37,8 +37,8 @@ obrót karteczek.
   (self-check logiki parsowania w GJS). Oba przechodzą.
 - ✅ Faza 3 — menu kontekstowe karteczki („Usuń", „Nowa karteczka"),
   `~/.local/share/nemo/actions/dodaj-karteczke.nemo_action`.
-- ✅ Faza 4 — wygląd docelowy, 9-slice okazał się niepotrzebny (karta ma
-  stały rozmiar, obrazek renderowany 1:1).
+- ✅ Faza 4 — wygląd docelowy, 9-slice okazał się niepotrzebny (obrazek
+  renderowany 1:1, karta przyjmuje jego rozmiar).
 - ✅ Faza 5 — `README.md` z instalacją i ręcznym scenariuszem testowym.
 - ✅ Faza 6 — wybór tła i rozmiaru tekstu z menu (pola `background`/`font`).
 - ✅ Faza 7 — ściągawka „Formatowanie" w oknie modalnym.
@@ -175,8 +175,11 @@ tests/
 ├── test_karteczki_common.py                # unittest, gsettings zamockowane
 └── test_desklet_json.gjs                   # self-check logiki GJS
 
+README.md                                   # instalacja, obsługa, scenariusz testowy
+dodaj-karteczke.nemo_action                 # wzorzec z __KARTECZKI__ zamiast ścieżki
+
 ~/.local/share/nemo/actions/
-└── dodaj-karteczke.nemo_action             # wpis menu kontekstowego pulpitu
+└── dodaj-karteczke.nemo_action             # zainstalowana kopia (ścieżka podstawiona)
 
 ~/.local/share/karteczki/
 ├── <uuid>.json                             # dane jednej karteczki
@@ -228,7 +231,8 @@ skrypt podpięty pod akcję Nemo.
 
 ### ✅ Faza 4 — wygląd docelowy
 Tło `karteczka-bristol-4.png` renderowane 1:1 w rozmiarze karty (350×100)
-przez `Clutter.Image` — 9-slice niepotrzebny, bo karta ma stały rozmiar.
+przez `Clutter.Image` — 9-slice niepotrzebny, bo obrazek nie jest skalowany
+(w Fazie 6 rozmiar karty zaczął się brać wprost z pliku tła).
 Font Caveat zbundlowany w `assets/fonts/` i zainstalowany (zmiana decyzji
 z AGENTS.md, gdzie był traktowany jako zależność systemowa).
 
