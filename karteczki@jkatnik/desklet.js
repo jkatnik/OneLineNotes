@@ -15,8 +15,11 @@ const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
 const CARD_WIDTH = 350;
-const CARD_HEIGHT = 116;
-const TEXT_PADDING = { top: 0, right: 30, bottom: 0, left: 30 };
+const CARD_HEIGHT = 100;
+// bottom: 15 podnosi tekst o 7,5 px. Papier na grafice kończy się w ~85/100
+// (niżej jest wtopiony cień), a font ma długie wydłużenia dolne — bez tego
+// tekst jest wyśrodkowany geometrycznie, ale optycznie siedzi za nisko.
+const TEXT_PADDING = { top: 0, right: 16, bottom: 15, left: 16 };
 
 function loadImageActor(path, width, height) {
     let pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, width, height, true);
@@ -106,7 +109,7 @@ MyDesklet.prototype = {
             // Poza edycją klik musi dojść do deskletu; reactive Text
             // przechwytuje go, zanim on_desklet_clicked() zdąży wystartować modal.
             reactive: false,
-            font_name: "Caveat 16",
+            font_name: "Caveat 18",
             x_align: Clutter.ActorAlign.START,
             y_align: Clutter.ActorAlign.CENTER,
             margin_top: TEXT_PADDING.top,
