@@ -14,8 +14,8 @@ const ByteArray = imports.byteArray;
 const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
 const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
-const CARD_WIDTH = 395;
-const CARD_HEIGHT = 158;
+const CARD_WIDTH = 350;
+const CARD_HEIGHT = 116;
 const TEXT_PADDING = { top: 0, right: 30, bottom: 0, left: 30 };
 
 function loadImageActor(path, width, height) {
@@ -27,7 +27,10 @@ function loadImageActor(path, width, height) {
         pixbuf.get_width(), pixbuf.get_height(),
         pixbuf.get_rowstride()
     );
-    let actor = new Clutter.Actor({ width: width, height: height });
+    // Rozmiar z pixbufa, nie żądany: przy niepasujących proporcjach
+    // new_from_file_at_scale zwraca mniejszy obraz, a rozciągnięcie go
+    // do width×height zniekształciłoby karteczkę.
+    let actor = new Clutter.Actor({ width: pixbuf.get_width(), height: pixbuf.get_height() });
     actor.set_content(image);
     return actor;
 }
@@ -85,7 +88,7 @@ MyDesklet.prototype = {
     },
 
     _buildUI: function () {
-        let imgPath = DESKLET_ROOT + "/img/karteczka-bristol-3.png";
+        let imgPath = DESKLET_ROOT + "/img/karteczka-bristol-4.png";
         this._container = new Clutter.Actor({
             width: CARD_WIDTH,
             height: CARD_HEIGHT,
