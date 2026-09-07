@@ -268,6 +268,105 @@ karteczka) plus przypomnienie o Ctrl+kliku i dwukliku. `close()` w
 Cinnamonie domyślnie zwalnia grab i niszczy dialog (`destroyOnClose: true`),
 więc nie ma czego sprzątać ręcznie.
 
+### ⬜ Faza 8 — i18n (gettext)
+
+Wzorzec z deskletów w Spices (sprawdzony w zainstalowanym
+`notes@schorschii`):
+
+```js
+const Gettext = imports.gettext;
+Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
+function _(str) { return Gettext.dgettext(UUID, str); }
+```
+
+- **Warunek wstępny, największa część pracy: `msgid` musi być po
+  angielsku.** Dziś wszystkie etykiety są polskie („Kolor atramentu",
+  „Tło", „Rozmiar tekstu", „Formatowanie", „Usuń", „Nowa karteczka", nazwy
+  kolorów i rozmiarów, cały dialog ściągawki, komunikat awaryjny) — do
+  publikacji idą po angielsku, a polski wraca jako `po/pl.po`. Około
+  20 ciągów.
+- Nazwy plików teł nie nadają się na etykiety menu („karteczka-bristol-4").
+  Przy okazji i18n: albo angielskie nazwy assetów (`paper-strip.png`,
+  `paper-tall.png`), albo mapa nazwa pliku → tłumaczona etykieta.
+- Narzędzia są w systemie: `cinnamon-xlet-makepot` (lokalnie),
+  `./cinnamon-spices-makepot UUID` i `--install` w repo Spices — to drugie
+  kompiluje `.po` do `~/.local/share/locale` i pozwala przetestować
+  tłumaczenie przed PR-em.
+- `makepot` zbiera też `name` i `description` z `metadata.json`.
+
+### ⬜ Faza 9 — licencja GPL-3.0
+
+- `LICENSE` z pełnym tekstem GPL-3.0 w katalogu repo + krótki nagłówek
+  copyright w `desklet.js`, `karteczki_markdown.js` i skryptach `bin/*.py`.
+  Sekcja „Licencja" w README.
+- **Font Caveat ma własną licencję (OFL-1.1), nie GPL** — jeśli zostaje w
+  repo, potrzebuje osobnego katalogu z kopią OFL i notą, że jego licencja
+  jest inna niż licencja kodu.
+- Grafiki `assets/*.png` to własne zdjęcia — do decyzji, czy idą na GPL-3.0
+  razem z kodem, czy na osobnej licencji (np. CC BY-SA).
+- **Do potwierdzenia z maintainerami Spices:** repozytorium
+  `cinnamon-spices-desklets` jest oznaczone jako GPL-2.0 (sprawdzone przez
+  API GitHuba). Xlet to osobne dzieło, nie linkowane z resztą repo, więc
+  GPL-3.0 nie powinno kolidować, ale warto to zapytać w PR zamiast
+  zakładać.
+
+### ⬜ Faza 10 — publikacja w Cinnamon Spices
+
+Wymagany układ katalogów (z README repozytorium Spices):
+
+```
+karteczki@jkatnik/
+├── info.json          # {"author": "<nazwa użytkownika GitHub>"}
+├── screenshot.png     # zrzut karteczek na pulpicie
+├── README.md
+└── files/
+    └── karteczki@jkatnik/     # files/ zawiera TYLKO ten katalog
+        ├── metadata.json      # uuid, name, description, version, author, max-instances, last-edited
+        ├── desklet.js
+        ├── karteczki_markdown.js
+        ├── icon.png           # ikona w menu deskletów — jeszcze nie istnieje
+        ├── img/
+        └── po/
+```
+
+Zmiany, których to wymaga w obecnym projekcie:
+
+1. **Skrypty `bin/` muszą wjechać do środka xleta** (`files/UUID/bin/`) —
+   dziś desklet woła je przez `DESKLET_ROOT + "/../bin/"`, co poza repo
+   deweloperskim nie istnieje. Ścieżka staje się lokalna.
+2. **Akcja Nemo nie może być instalowana z zewnątrz.** Do wyboru: desklet
+   sam zakłada `~/.local/share/nemo/actions/…` przy pierwszym starcie, albo
+   rezygnujemy z integracji z pulpitem i nowe karteczki dodaje się wyłącznie
+   z menu istniejącej karteczki. Wariant pierwszy wymaga uprzedzenia w
+   opisie desletu.
+3. **Font `.ttf` prawdopodobnie odpada z paczki** — zasady zabraniają
+   „pre-compiled blobs (besides icons and images)", a pakietu `fonts-caveat`
+   nie ma w repozytoriach dystrybucji (sprawdzone: `apt-cache`). Zalecane:
+   desklet działa na foncie systemowym, gdy Caveat nie jest zainstalowany
+   (dziś Pango i tak podstawia zamiennik), a README opisuje ręczną
+   instalację. Bundlowanie tylko po zgodzie maintainerów.
+4. `metadata.json` dostaje `author` i `last-edited` (timestamp), których
+   dziś nie ma; `description` musi być po angielsku.
+5. Wymóg samowystarczalności: bez zależności spoza oficjalnych repozytoriów
+   dystrybucji. Obecne zależności (`python3`, `gsettings`, `xdg-open`) to
+   spełniają.
+6. PR: jeden desklet na pull request, zmiany tylko w jego katalogu,
+   tłumaczenia przetestowane przez `--install` przed wysłaniem.
+
+### ⬜ Faza 11 — lekki obrót karteczek (±5°)
+
+Żeby karteczki wyglądały na rozrzucone, a nie wyrównane do siatki.
+
+- `actor.set_pivot_point(0.5, 0.5)` + `set_rotation_angle(Clutter.RotateAxis.Z_AXIS, kąt)`
+  na `_container` (nie na `this.actor` — tym zarządza Cinnamon przy D&D).
+- Kąt losowany **raz, przy tworzeniu notatki**, i zapisany w JSON jako
+  `rotation`; inaczej karteczki przeskakiwałyby przy każdym restarcie
+  powłoki. Notatki bez tego pola dostają kąt przy pierwszym wczytaniu.
+- Do zweryfikowania na żywo: czy trafianie w link i wejście w edycję działa
+  po obrocie (`transform_stage_point` i picking uwzględniają transformacje,
+  więc powinno) oraz czy obrócona karta nie jest przycinana — przy 5° i
+  karcie 350×100 obrys rośnie o ~7 px w poziomie i ~30 px w pionie.
+
 ## Poza zakresem (patrz AGENTS.md → YAGNI)
 
 Zagnieżdżone formatowanie Markdown, nagłówki i listy, color picker zamiast
