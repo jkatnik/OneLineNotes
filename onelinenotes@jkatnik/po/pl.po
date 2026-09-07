@@ -1,11 +1,11 @@
 # Polskie tłumaczenie desletu Karteczki.
-# This file is distributed under the same license as the karteczki@jkatnik package.
+# This file is distributed under the same license as the onelinenotes@jkatnik package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: karteczki@jkatnik\n"
+"Project-Id-Version: onelinenotes@jkatnik\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 12:30+0200\n"
+"POT-Creation-Date: 2026-09-07 14:24+0200\n"
 "PO-Revision-Date: 2026-09-07\n"
 "Last-Translator: Jarosław Kątnik\n"
 "Language-Team: polski\n"
@@ -15,138 +15,142 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: karteczki@jkatnik/desklet.js:80
+#: onelinenotes@jkatnik/desklet.js:92
 msgid "Black"
 msgstr "Czarny"
 
-#: karteczki@jkatnik/desklet.js:81
+#: onelinenotes@jkatnik/desklet.js:93
 msgid "Red"
 msgstr "Czerwony"
 
-#: karteczki@jkatnik/desklet.js:82
+#: onelinenotes@jkatnik/desklet.js:94
 msgid "Blue"
 msgstr "Niebieski"
 
-#: karteczki@jkatnik/desklet.js:83
+#: onelinenotes@jkatnik/desklet.js:95
 msgid "Green"
 msgstr "Zielony"
 
-#: karteczki@jkatnik/desklet.js:89
+#: onelinenotes@jkatnik/desklet.js:121
 msgid "Small"
 msgstr "Mała"
 
-#: karteczki@jkatnik/desklet.js:90
+#: onelinenotes@jkatnik/desklet.js:122
 msgid "Medium"
 msgstr "Średnia"
 
-#: karteczki@jkatnik/desklet.js:91
+#: onelinenotes@jkatnik/desklet.js:123
 msgid "Large"
 msgstr "Duża"
 
-#: karteczki@jkatnik/desklet.js:98
+#: onelinenotes@jkatnik/desklet.js:130
 msgid "bold"
 msgstr "pogrubienie"
 
-#: karteczki@jkatnik/desklet.js:99
+#: onelinenotes@jkatnik/desklet.js:131
 msgid "italic"
 msgstr "kursywa"
 
-#: karteczki@jkatnik/desklet.js:100
+#: onelinenotes@jkatnik/desklet.js:132
 msgid "underline"
 msgstr "podkreślenie"
 
-#: karteczki@jkatnik/desklet.js:101
+#: onelinenotes@jkatnik/desklet.js:133
 msgid "strikethrough"
 msgstr "przekreślenie"
 
-#: karteczki@jkatnik/desklet.js:102 karteczki@jkatnik/desklet.js:103
+#: onelinenotes@jkatnik/desklet.js:134 onelinenotes@jkatnik/desklet.js:135
 msgid "text"
 msgstr "tekst"
 
-#: karteczki@jkatnik/desklet.js:102
+#: onelinenotes@jkatnik/desklet.js:134
 msgid "address"
 msgstr "adres"
 
-#: karteczki@jkatnik/desklet.js:129
+#: onelinenotes@jkatnik/desklet.js:161
 msgid "Paper strip"
 msgstr "Pasek papieru"
 
-#: karteczki@jkatnik/desklet.js:130
+#: onelinenotes@jkatnik/desklet.js:162
 msgid "Tall paper"
 msgstr "Wysoka kartka"
 
-#: karteczki@jkatnik/desklet.js:235
+#: onelinenotes@jkatnik/desklet.js:267
 msgid "(no note data — remove this one and add a new note from the desktop menu)"
 msgstr "(brak danych karteczki — usuń ją i dodaj nową z menu pulpitu)"
 
-#: karteczki@jkatnik/desklet.js:518
+#: onelinenotes@jkatnik/desklet.js:567
 msgid "Ink color"
 msgstr "Kolor atramentu"
 
-#: karteczki@jkatnik/desklet.js:527
+#: onelinenotes@jkatnik/desklet.js:576
 msgid "Background"
 msgstr "Tło"
 
-#: karteczki@jkatnik/desklet.js:534
+#: onelinenotes@jkatnik/desklet.js:583
+msgid "Font"
+msgstr "Czcionka"
+
+#: onelinenotes@jkatnik/desklet.js:588
 msgid "Text size"
 msgstr "Rozmiar tekstu"
 
-#: karteczki@jkatnik/desklet.js:541
+#: onelinenotes@jkatnik/desklet.js:595
 msgid "System language"
 msgstr "Język systemu"
 
-#: karteczki@jkatnik/desklet.js:545
+#: onelinenotes@jkatnik/desklet.js:599
 msgid "Language"
 msgstr "Język"
 
-#: karteczki@jkatnik/desklet.js:549
+#: onelinenotes@jkatnik/desklet.js:603
 msgid "Formatting"
 msgstr "Formatowanie"
 
-#: karteczki@jkatnik/desklet.js:553 karteczki@jkatnik/desklet.js:697
+#: onelinenotes@jkatnik/desklet.js:607 onelinenotes@jkatnik/desklet.js:751
 msgid "Remove"
 msgstr "Usuń"
 
-#: karteczki@jkatnik/desklet.js:557
+#: onelinenotes@jkatnik/desklet.js:611
 msgid "New note"
 msgstr "Nowa karteczka"
 
-#: karteczki@jkatnik/desklet.js:583
+#: onelinenotes@jkatnik/desklet.js:637
 msgid "Note formatting"
 msgstr "Formatowanie treści karteczki"
 
-#: karteczki@jkatnik/desklet.js:600
+#: onelinenotes@jkatnik/desklet.js:654
 msgid "Markers do not nest. Ctrl+click opens a link."
 msgstr "Znaczniki nie zagnieżdżają się. Ctrl+klik otwiera link."
 
-#: karteczki@jkatnik/desklet.js:601
+#: onelinenotes@jkatnik/desklet.js:655
 msgid "Double-click starts editing, Enter saves, Escape cancels."
 msgstr "Dwuklik wchodzi w edycję, Enter zapisuje, Escape anuluje."
 
-#: karteczki@jkatnik/desklet.js:607
+#: onelinenotes@jkatnik/desklet.js:661
 msgid "Close"
 msgstr "Zamknij"
 
-#: karteczki@jkatnik/desklet.js:681
+#: onelinenotes@jkatnik/desklet.js:735
 msgid "Remove this note?"
 msgstr "Usunąć tę karteczkę?"
 
-#: karteczki@jkatnik/desklet.js:684
+#: onelinenotes@jkatnik/desklet.js:738
 msgid "Its file will be deleted permanently."
 msgstr "Jej plik zostanie trwale skasowany."
 
-#: karteczki@jkatnik/desklet.js:686
+#: onelinenotes@jkatnik/desklet.js:740
 msgid "Don't ask again"
 msgstr "Nie pytaj ponownie"
 
-#: karteczki@jkatnik/desklet.js:692
+#: onelinenotes@jkatnik/desklet.js:746
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: karteczki@jkatnik/metadata.json
+#: onelinenotes@jkatnik/metadata.json
 msgid "Sticky Notes"
 msgstr "Karteczki"
 
-#: karteczki@jkatnik/metadata.json
+#: onelinenotes@jkatnik/metadata.json
 msgid "Sticky notes on the desktop, with Markdown formatting"
 msgstr "Karteczki samoprzylepne na pulpicie, z formatowaniem Markdown"

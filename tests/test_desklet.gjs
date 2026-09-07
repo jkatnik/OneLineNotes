@@ -1,10 +1,10 @@
 // Sprawdza readJson/writeJson oraz parsowanie koloru z desklet.js
 // plus konwersję Markdown → Pango markup (realny moduł, nie kopia)
-// (uruchom: gjs tests/test_desklet_json.gjs)
-imports.searchPath.unshift("/home/jkatnik/code/linux/karteczki/karteczki@jkatnik");
-const Markdown = imports.karteczki_markdown;
-const Layout = imports.karteczki_layout;
-const I18n = imports.karteczki_i18n;
+// (uruchom: gjs tests/test_desklet.gjs)
+imports.searchPath.unshift("/home/jkatnik/code/linux/karteczki/onelinenotes@jkatnik");
+const Markdown = imports.onelinenotes_markdown;
+const Layout = imports.onelinenotes_layout;
+const I18n = imports.onelinenotes_i18n;
 const GLib = imports.gi.GLib;
 const Gio = imports.gi.Gio;
 const Clutter = imports.gi.Clutter;
@@ -190,9 +190,9 @@ assert(po["Markers do not nest.\nCtrl+click opens a link."] ===
 assert(po["Long one"] === "pierwsza część i druga", "msgstr sklejony z kilku linii");
 assert(po["Nieprzetłumaczone"] === undefined, "pusty msgstr pomijany (zostaje msgid)");
 
-assert(I18n.availableLanguages(["pl.po", "de.po", "karteczki@jkatnik.pot", "readme.txt"]).join(",") === "de,pl",
+assert(I18n.availableLanguages(["pl.po", "de.po", "onelinenotes@jkatnik.pot", "readme.txt"]).join(",") === "de,pl",
     "lista języków tylko z plików .po, posortowana");
 assert(I18n.languageName("pl") === "Polski" && I18n.languageName("xx") === "xx",
     "nazwa języka własna, nieznany kod zwracany bez zmian");
 
-print("OK: test_desklet_json.gjs");
+print("OK: test_desklet.gjs");

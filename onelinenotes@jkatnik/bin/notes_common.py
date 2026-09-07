@@ -19,12 +19,12 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-DESKLET_UUID = "karteczki@jkatnik"
+DESKLET_UUID = "onelinenotes@jkatnik"
 DATA_DIR = Path.home() / ".local/share/karteczki"
 DEFAULT_CONTENT = "Lorem ipsum"
 DEFAULT_COLOR = "#112971"
 DEFAULT_FONT = "Caveat 20"  # pełny opis Pango: rodzina + rozmiar
-DEFAULT_BACKGROUND = "karteczka-bristol-4.png"  # plik z karteczki@jkatnik/img/
+DEFAULT_BACKGROUND = "paper-strip.png"  # plik z onelinenotes@jkatnik/img/
 POSITION_STEP = 30
 BASE_X = 100
 BASE_Y = 100

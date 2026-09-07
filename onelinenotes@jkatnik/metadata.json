@@ -1,0 +1,10 @@
+{
+    "uuid": "onelinenotes@jkatnik",
+    "name": "OneLineNotes",
+    "description": "One-line sticky notes on the desktop, with Markdown formatting",
+    "version": "1.0",
+    "max-instances": "-1",
+    "prevent-decorations": true,
+    "author": "jkatnik",
+    "last-edited": 1788785522
+}

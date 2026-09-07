@@ -1,8 +1,8 @@
-# Sticky Notes (karteczki@jkatnik)
+# OneLineNotes
 
 A Cinnamon desklet that puts sticky notes on your desktop. Each note is a
 separate desklet instance backed by its own JSON file in
-`~/.local/share/karteczki/`.
+`~/.local/share/onelinenotes/`.
 
 The note looks like a real piece of paper because it *is* a photo of one —
 the background is a PNG rendered 1:1, not drawn programmatically.
@@ -15,11 +15,11 @@ Design notes and working agreements live in [PLAN.md](PLAN.md) and
 The desklet runs straight from the development directory; there is no .deb.
 
 ```bash
-git clone <repo> ~/code/linux/karteczki      # any path works
-cd ~/code/linux/karteczki
+git clone <repo> onelinenotes      # any path works
+cd onelinenotes
 
 # 1. make the desklet visible to Cinnamon
-ln -s "$PWD/karteczki@jkatnik" ~/.local/share/cinnamon/desklets/
+ln -s "$PWD/onelinenotes@jkatnik" ~/.local/share/cinnamon/desklets/
 
 # 2. fonts (optional but recommended — see "Appearance" below)
 mkdir -p ~/.local/share/fonts
@@ -27,10 +27,10 @@ cp assets/fonts/*.ttf ~/.local/share/fonts/
 fc-cache -f
 
 # 3. translations (the interface is English; Polish lives in po/pl.po)
-for po in karteczki@jkatnik/po/*.po; do
+for po in onelinenotes@jkatnik/po/*.po; do
     lang=$(basename "$po" .po)
     mkdir -p ~/.local/share/locale/$lang/LC_MESSAGES
-    msgfmt "$po" -o ~/.local/share/locale/$lang/LC_MESSAGES/karteczki@jkatnik.mo
+    msgfmt "$po" -o ~/.local/share/locale/$lang/LC_MESSAGES/onelinenotes@jkatnik.mo
 done
 ```
 
@@ -39,7 +39,7 @@ Then restart the Cinnamon shell: `Alt+F2`, type `r`, Enter. This is
 newly added ones, because Pango caches the family list at startup.
 
 Add the desklet through *System Settings → Desklets*, or create the first note
-from a terminal with `karteczki@jkatnik/bin/karteczki-nowa`.
+from a terminal with `onelinenotes@jkatnik/bin/note-new`.
 
 The **"Add note" entry in the desktop context menu installs itself**: on its
 first run the desklet writes the action into `~/.local/share/nemo/actions/`.
@@ -92,7 +92,7 @@ available from the **Formatting** entry in the context menu.
 ### Appearance
 
 - **Background** — the *Background* submenu lists the PNG files in
-  `karteczki@jkatnik/img/`. A note takes the size of its background (currently
+  `onelinenotes@jkatnik/img/`. A note takes the size of its background (currently
   354×104 and 395×158), so adding your own is a matter of dropping a
   transparent PNG of the target size into that directory. Scaling flattens the
   paper texture, so prepare the file 1:1 instead of relying on downscaling.
@@ -113,14 +113,14 @@ available from the **Formatting** entry in the context menu.
 
 ## Translations
 
-The interface is English; translations live in `karteczki@jkatnik/po/`
+The interface is English; translations live in `onelinenotes@jkatnik/po/`
 (currently `pl.po`).
 
 The language is chosen from the note's context menu (*Language*). *System
 language* follows the session (`LANGUAGE`/`LANG`) through gettext, while a
 specific language can be forced regardless of the system setting. The choice is
 shared by every note — it is stored in
-`~/.local/share/karteczki/settings.json` and repaints them immediately, with no
+`~/.local/share/onelinenotes/settings.json` and repaints them immediately, with no
 shell restart.
 
 Under *System language* the translations come from `~/.local/share/locale`
@@ -133,8 +133,8 @@ After adding a new string to the code, refresh the template and translations:
 
 ```bash
 xgettext --language=JavaScript --keyword=_ --from-code=UTF-8 --no-wrap \
-    -o karteczki@jkatnik/po/karteczki@jkatnik.pot karteczki@jkatnik/*.js
-msgmerge -U karteczki@jkatnik/po/pl.po karteczki@jkatnik/po/karteczki@jkatnik.pot
+    -o onelinenotes@jkatnik/po/onelinenotes@jkatnik.pot onelinenotes@jkatnik/*.js
+msgmerge -U onelinenotes@jkatnik/po/pl.po onelinenotes@jkatnik/po/onelinenotes@jkatnik.pot
 ```
 
 `cinnamon-xlet-makepot` does the same and additionally collects
@@ -145,22 +145,22 @@ package, which is not installed here — those two strings are appended to the
 ## Scripts
 
 ```bash
-karteczki@jkatnik/bin/karteczki-nowa            # new note under the pointer
-karteczki@jkatnik/bin/karteczki-nowa 800 400    # new note at a screen position
-karteczki@jkatnik/bin/karteczki-usun 7          # remove the note with that instance_id
+onelinenotes@jkatnik/bin/note-new            # new note under the pointer
+onelinenotes@jkatnik/bin/note-new 800 400    # new note at a screen position
+onelinenotes@jkatnik/bin/note-remove 7          # remove the note with that instance_id
 ```
 
 The scripts live inside the xlet because that is the only directory shipped to
 users; the desklet calls them by a path relative to itself.
 
 `instance_id` shows up in `gsettings get org.cinnamon enabled-desklets` and in
-`~/.local/share/karteczki/instances.json`, which maps it to the note's UUID.
+`~/.local/share/onelinenotes/instances.json`, which maps it to the note's UUID.
 
 ## Tests
 
 ```bash
 python3 -m unittest discover -s tests -q    # CRUD, gsettings mocked out
-gjs tests/test_desklet_json.gjs             # JSON, colours, Markdown, layout, .po parser
+gjs tests/test_desklet.gjs             # JSON, colours, Markdown, layout, .po parser
 ```
 
 **Syntax-check `desklet.js` before every change** — an error in desklet code
@@ -168,7 +168,7 @@ can take down the whole Cinnamon shell (it happened twice, SIGSEGV) instead of
 merely throwing:
 
 ```bash
-gjs -c "$(printf 'function __check(){\n%s\n}\nprint("PARSE OK");' "$(cat karteczki@jkatnik/desklet.js)")"
+gjs -c "$(printf 'function __check(){\n%s\n}\nprint("PARSE OK");' "$(cat onelinenotes@jkatnik/desklet.js)")"
 ```
 
 If the shell does go down anyway: `DISPLAY=:0 cinnamon --replace &` from a
@@ -192,7 +192,7 @@ Worth walking through after changing the desklet:
 7. `Alt+F2`, `r` — after the shell restarts both notes return to their
    positions with their content, colour and **rotation angle** intact.
 8. Right-click → *Remove* on both — they disappear from the desktop, and their
-   files from `~/.local/share/karteczki/`.
+   files from `~/.local/share/onelinenotes/`.
 
 ## Publishing to Cinnamon Spices
 
@@ -201,7 +201,7 @@ a fixed one. Rather than reshaping the repository, the package is built on
 demand:
 
 ```bash
-tools/build-spice          # writes build/karteczki@jkatnik/
+tools/build-spice          # writes build/onelinenotes@jkatnik/
 ```
 
 The script also checks the requirements that are easy to trip over: `files/`

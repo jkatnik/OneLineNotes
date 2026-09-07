@@ -16,9 +16,9 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from karteczki_common import delete_note
+from notes_common import delete_note
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        sys.exit("użycie: karteczki-usun <instance_id>")
+        sys.exit("użycie: note-remove <instance_id>")
     delete_note(int(sys.argv[1]))

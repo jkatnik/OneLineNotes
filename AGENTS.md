@@ -1,4 +1,4 @@
-# Karteczki — kontekst dla agentów
+# OneLineNotes — kontekst dla agentów
 
 ## Co to jest
 
@@ -18,35 +18,44 @@ tych mechanizmów.
   jedna instancja = jedna karteczka. `"prevent-decorations": true`, żeby nie
   było paska tytułowego Cinnamona nad zdjęciem kartonika. (To realne nazwy
   kluczy — nie `multiInstance`/`decoration` z pierwotnego planu.)
-- **`karteczki_markdown.js`** — czysty moduł (bez importów Cinnamona)
+- **`onelinenotes_markdown.js`** — czysty moduł (bez importów Cinnamona)
   zamieniający Markdown na Pango markup; ładowany przez `imports.searchPath`,
-  więc ten sam plik testuje `tests/test_desklet_json.gjs` pod gołym `gjs`.
+  więc ten sam plik testuje `tests/test_desklet.gjs` pod gołym `gjs`.
 - **Nemo custom action** (`~/.local/share/nemo/actions/*.nemo_action`) —
   dodaje "Dodaj karteczkę" do menu kontekstowego tła pulpitu. To menu należy
   do procesu `nemo-desktop`, nie do powłoki Cinnamon — desklet sam w sobie nie
   ma dostępu do tego menu. Plik zakłada sam przy pierwszym starcie (wzorzec
-  `dodaj-karteczke.nemo_action` w katalogu xleta, `__KARTECZKI__` podmieniane
+  `add-note.nemo_action` w katalogu xleta, `__ONELINENOTES__` podmieniane
   na `DESKLET_ROOT`). Skasowanie akcji przez użytkownika jest respektowane,
   ale wpis z martwym `Exec` (np. po przeniesieniu repo) zostaje naprawiony.
-- **Skrypty w `karteczki@jkatnik/bin/`** (wywoływane przez akcję Nemo i przez
+- **Skrypty w `onelinenotes@jkatnik/bin/`** (wywoływane przez akcję Nemo i przez
   pozycję "nowa karteczka" w menu desklecika) — leżą wewnątrz xleta, bo tylko
   jego katalog trafia do użytkownika ze Spices; desklet woła je ścieżką
   względem `DESKLET_ROOT`. Skrypt tworzący notatkę — generuje UUID, zapisuje domyślny
   JSON, dopisuje wpis do klucza gsettings `org.cinnamon enabled-desklets`.
-- **Magazyn danych**: `~/.local/share/karteczki/<uuid>.json`, jeden plik na
+- **Magazyn danych**: `~/.local/share/onelinenotes/<uuid>.json`, jeden plik na
   karteczkę.
 
 ## Decyzje i uzasadnienia
 
+- **Nazwa i UUID: `OneLineNotes` / `onelinenotes@jkatnik`** (zmiana z
+  „karteczki" 2026-09-07, przed pierwszą publikacją — potem zmiana UUID
+  oznaczałaby już osobny xlet w Spices). Przemianowane zostały też moduły,
+  skrypty (`bin/note-new`, `bin/note-remove`), pliki teł (`paper-strip.png`,
+  `paper-tall.png`), domena tłumaczeń i katalog danych
+  (`~/.local/share/onelinenotes`). Desklet przenosi stary katalog danych przy
+  pierwszym uruchomieniu — polska nazwa została tylko w komentarzach, PLAN.md
+  i AGENTS.md, bo to język roboczy projektu.
+
 - **XDG_DATA_HOME, nie XDG_STATE_HOME.** Treść karteczek to wartościowe
   dane użytkownika (chce je mieć w backupie), nie efemeryczny stan
-  aplikacji jak historia czy cache. Stąd `~/.local/share/karteczki`,
+  aplikacji jak historia czy cache. Stąd `~/.local/share/onelinenotes`,
   a nie `~/.local/state/karteczki`.
 - **Pozycja duplikowana w JSON.** Cinnamon i tak śledzi pozycję desklecika
   we własnym gsettings, ale zapisujemy `position` też do pliku JSON, żeby
   backup/restore samych plików JSON odtwarzał układ pulpitu bez zależności
   od stanu gsettings.
-- **Kotwiczenie przy prawej/dolnej krawędzi** (`karteczki_layout.js`).
+- **Kotwiczenie przy prawej/dolnej krawędzi** (`onelinenotes_layout.js`).
   Współrzędne z gsettings są liczone od lewego górnego rogu, więc po zmianie
   zestawu monitorów karta z prawej strony wyjeżdża poza ekran, a karta „na
   dole" ląduje w połowie pulpitu. Karty, których środek leży w skrajnej ⅓
@@ -59,7 +68,7 @@ tych mechanizmów.
   wirtualnego pulpitu, jest istotne: karta dosunięta do prawej krawędzi
   lewego ekranu leży w skali pulpitu mniej więcej pośrodku.
 - **Treść w Markdown, renderowana przez Pango markup** (decyzja zmieniona
-  2026-09-07 — wcześniej tylko surowy tekst). `karteczki_markdown.js`
+  2026-09-07 — wcześniej tylko surowy tekst). `onelinenotes_markdown.js`
   zamienia `**pogrubienie**`, `*kursywę*`, `__podkreślenie__`,
   `~~przekreślenie~~` i `[tekst](url)` na markup (`<b>`, `<i>`, `<u>`,
   `<s>`, `<span>`), który `Clutter.Text` renderuje natywnie — bez
@@ -85,7 +94,7 @@ tych mechanizmów.
   — potwierdzone eksperymentalnie (Faza 0): tymczasowe ustawienie
   `gsettings set org.cinnamon enabled-desklets
   "['clock@cinnamon.org:1:100:100']"` zostało przyjęte przez Cinnamona bez
-  normalizacji. `bin/karteczki_common.py` generuje wpisy w tym formacie.
+  normalizacji. `bin/notes_common.py` generuje wpisy w tym formacie.
 
 ## Czego NIE robimy (świadomie, YAGNI)
 
@@ -104,7 +113,7 @@ tych mechanizmów.
   sprawdzany pod kątem ich wymogów).
 - **Interfejs po angielsku, tłumaczenia przez gettext.** Wszystkie widoczne
   ciągi idą przez `_()` (`Gettext.dgettext(UUID, …)`), polski siedzi w
-  `karteczki@jkatnik/po/pl.po`, a `.mo` instaluje się do
+  `onelinenotes@jkatnik/po/pl.po`, a `.mo` instaluje się do
   `~/.local/share/locale`. Nowy ciąg w kodzie = aktualizacja `.pot` i `.po`
   (komendy w README). Język można wybrać w menu karteczki niezależnie od
   locale sesji — przy wymuszonym języku `.po` czytany jest wprost, bo gettext

@@ -29,15 +29,15 @@ const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 const PangoCairo = imports.gi.PangoCairo;
 
-const UUID = "karteczki@jkatnik";
+const UUID = "onelinenotes@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
 
 imports.searchPath.unshift(DESKLET_ROOT);
-const Markdown = imports.karteczki_markdown;
-const Layout = imports.karteczki_layout;
-const I18n = imports.karteczki_i18n;
+const Markdown = imports.onelinenotes_markdown;
+const Layout = imports.onelinenotes_layout;
+const I18n = imports.onelinenotes_i18n;
 
-const DATA_DIR = GLib.get_home_dir() + "/.local/share/karteczki";
+const DATA_DIR = GLib.get_home_dir() + "/.local/share/onelinenotes";
 const IMG_DIR = DESKLET_ROOT + "/img";
 const PO_DIR = DESKLET_ROOT + "/po";
 // Skrypty leżą wewnątrz xleta — poza repo deweloperskim nie ma nic obok niego.
@@ -48,7 +48,7 @@ const SETTINGS_PATH = DATA_DIR + "/settings.json";
 // Wymiary awaryjne: normalnie karta ma rozmiar swojego pliku tła.
 const CARD_WIDTH = 350;
 const CARD_HEIGHT = 100;
-const DEFAULT_BACKGROUND = "karteczka-bristol-4.png";
+const DEFAULT_BACKGROUND = "paper-strip.png";
 const DEFAULT_FONT = "Caveat 20";
 const DEFAULT_COLOR = "#112971";
 const MAX_ROTATION = 3;  // stopnie w każdą stronę — karteczki mają wyglądać na rzucone, nie przekrzywione
@@ -62,8 +62,22 @@ Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
 let settings = null;
 let forcedTranslations = null;   // null = trzymamy się języka sesji (gettext)
 
+// Projekt nazywał się wcześniej "karteczki" — notatki sprzed zmiany nazwy
+// leżą w starym katalogu. Przenosimy je raz, żeby nikt nie stracił treści.
+function migrateDataDir() {
+    let stary = GLib.get_home_dir() + "/.local/share/karteczki";
+    if (GLib.file_test(DATA_DIR, GLib.FileTest.EXISTS)) return;
+    if (!GLib.file_test(stary, GLib.FileTest.IS_DIR)) return;
+    if (Gio.file_new_for_path(stary).move(Gio.file_new_for_path(DATA_DIR), Gio.FileCopyFlags.NONE, null, null)) {
+        global.log(UUID + ": przeniesiono dane z " + stary + " do " + DATA_DIR);
+    }
+}
+
 function getSettings() {
-    if (!settings) settings = readJson(SETTINGS_PATH) || {};
+    if (!settings) {
+        migrateDataDir();
+        settings = readJson(SETTINGS_PATH) || {};
+    }
     return settings;
 }
 
@@ -173,8 +187,8 @@ function loadImageActor(path) {
 // Nazwy plików teł są własne i polskie; menu pokazuje tłumaczone etykiety,
 // a plik dorzucony przez użytkownika — swoją nazwę bez rozszerzenia.
 function backgroundLabel(file) {
-    if (file === "karteczka-bristol-4.png") return _("Paper strip");
-    if (file === "karteczka-bristol-3.png") return _("Tall paper");
+    if (file === "paper-strip.png") return _("Paper strip");
+    if (file === "paper-tall.png") return _("Tall paper");
     return file.replace(/\.png$/, "");
 }
 
@@ -211,7 +225,7 @@ function fontSpec(font) {
 // skasowanie akcji przez użytkownika ma zostać skasowaniem, nie zaproszeniem
 // do odtworzenia jej przy każdym starcie.
 function installNemoAction() {
-    let cel = GLib.get_home_dir() + "/.local/share/nemo/actions/dodaj-karteczke.nemo_action";
+    let cel = GLib.get_home_dir() + "/.local/share/nemo/actions/add-note.nemo_action";
     let obecna = readText(cel);
 
     if (obecna !== null) {
@@ -230,11 +244,11 @@ function installNemoAction() {
         return;
     }
 
-    let wzorzec = readText(DESKLET_ROOT + "/dodaj-karteczke.nemo_action");
+    let wzorzec = readText(DESKLET_ROOT + "/add-note.nemo_action");
     if (!wzorzec) return;
 
     GLib.mkdir_with_parents(GLib.get_home_dir() + "/.local/share/nemo/actions", 0o755);
-    GLib.file_set_contents(cel, wzorzec.replace(/__KARTECZKI__/g, DESKLET_ROOT));
+    GLib.file_set_contents(cel, wzorzec.replace(/__ONELINENOTES__/g, DESKLET_ROOT));
     global.log(UUID + ": " + (obecna === null ? "zainstalowano" : "naprawiono") + " akcję Nemo w " + cel);
     getSettings().nemoActionInstalled = true;
     saveSettings();
@@ -312,7 +326,7 @@ MyDesklet.prototype = {
         }
         if (!this.note) {
             // brak mapowania (np. instancja dodana ręcznie, z pominięciem
-            // skryptu karteczki-nowa) — karteczka bez trwałego zapisu.
+            // skryptu note-new) — karteczka bez trwałego zapisu.
             this.note = {
                 content: _("(no note data — remove this one and add a new note from the desktop menu)"),
                 color: DEFAULT_COLOR,
@@ -822,12 +836,12 @@ MyDesklet.prototype = {
 
     _remove: function () {
         Util.spawnCommandLine(
-            BIN_DIR + "/karteczki-usun " + this.instance_id
+            BIN_DIR + "/note-remove " + this.instance_id
         );
     },
 
     _onNewClicked: function () {
-        let cmd = BIN_DIR + "/karteczki-nowa";
+        let cmd = BIN_DIR + "/note-new";
         if (this._menuPoint) cmd += " " + this._menuPoint[0] + " " + this._menuPoint[1];
         Util.spawnCommandLine(cmd);
     },

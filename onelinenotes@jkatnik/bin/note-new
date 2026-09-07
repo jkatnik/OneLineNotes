@@ -13,7 +13,7 @@
 
 """Tworzy nową karteczkę: plik JSON + wpis w enabled-desklets.
 
-Użycie: karteczki-nowa [x y]
+Użycie: note-new [x y]
 
 Bez argumentów karteczka ląduje pod kursorem — tak wywołuje ją akcja Nemo,
 która nie ma jak podać współrzędnych kliknięcia. Desklet podaje je jawnie:
@@ -23,7 +23,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from karteczki_common import create_note
+from notes_common import create_note
 
 
 def pointer_position():
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     elif len(sys.argv) == 1:
         position = pointer_position()
     else:
-        sys.exit("użycie: karteczki-nowa [x y]")
+        sys.exit("użycie: note-new [x y]")
 
     instance_id, note_uuid = create_note(position=position)
     print(f"{instance_id}:{note_uuid}")

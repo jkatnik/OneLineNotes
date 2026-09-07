@@ -32,17 +32,17 @@ import shutil
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-UUID = "karteczki@jkatnik"
+UUID = "onelinenotes@jkatnik"
 
 # Co trafia do paczki (reszta katalogu xleta zostaje w repo deweloperskim).
 PLIKI_XLETA = [
     "metadata.json",
     "desklet.js",
-    "karteczki_markdown.js",
-    "karteczki_layout.js",
-    "karteczki_i18n.js",
+    "onelinenotes_markdown.js",
+    "onelinenotes_layout.js",
+    "onelinenotes_i18n.js",
     "icon.png",
-    "dodaj-karteczke.nemo_action",
+    "add-note.nemo_action",
 ]
 KATALOGI_XLETA = ["img", "po", "bin"]
 
@@ -66,7 +66,7 @@ def zbuduj(cel: pathlib.Path) -> pathlib.Path:
 
     shutil.copy2(REPO / "info.json", korzen / "info.json")
     shutil.copy2(REPO / "README.md", korzen / "README.md")
-    zrzut = REPO / "screenshot.png"
+    zrzut = REPO / "assets" / "screenshot.png"
     if zrzut.exists():
         shutil.copy2(zrzut, korzen / "screenshot.png")
     return korzen

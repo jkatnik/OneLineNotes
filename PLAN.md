@@ -1,4 +1,4 @@
-# Plan implementacji — Karteczki
+# Plan implementacji — OneLineNotes
 
 ## Wymagania (zebrane z rozmowy)
 
@@ -11,7 +11,7 @@
 6. Tekst edytowany inline, w treści (wejście w edycję: dwuklik).
 7. Treść w formacie Markdown, renderowana: pogrubienie, kursywa,
    podkreślenie, hiperłącze.
-8. Zapis: jeden plik JSON na karteczkę w `~/.local/share/karteczki/`.
+8. Zapis: jeden plik JSON na karteczkę w `~/.local/share/onelinenotes/`.
 9. Schemat JSON: treść, kolor, czcionka, pozycja, data utworzenia, data
    modyfikacji, tło, kąt obrotu.
 
@@ -28,16 +28,16 @@ ikony w menu i potwierdzanie usuwania.
 - ✅ Faza 0 — format `enabled-desklets` potwierdzony eksperymentalnie:
   `UUID:instance_id:X:Y`. Akcja Nemo na tle pulpitu **zweryfikowana
   ręcznie przez użytkownika (2026-09-07) — działa**.
-- ✅ Faza 1 — desklet `karteczki@jkatnik/` (symlink w
+- ✅ Faza 1 — desklet `onelinenotes@jkatnik/` (symlink w
   `~/.local/share/cinnamon/desklets/`), `max-instances: -1`,
   `prevent-decorations: true`.
-- ✅ Faza 2 — `bin/karteczki_common.py` (CRUD + wpis gsettings + mapowanie
-  `instance_id`→uuid w `instances.json`), CLI `bin/karteczki-nowa`,
-  `bin/karteczki-usun`. Testy: `tests/test_karteczki_common.py`
-  (6 × unittest, gsettings zamockowane) + `tests/test_desklet_json.gjs`
+- ✅ Faza 2 — `bin/notes_common.py` (CRUD + wpis gsettings + mapowanie
+  `instance_id`→uuid w `instances.json`), CLI `bin/note-new`,
+  `bin/note-remove`. Testy: `tests/test_notes_common.py`
+  (6 × unittest, gsettings zamockowane) + `tests/test_desklet.gjs`
   (self-check logiki parsowania w GJS). Oba przechodzą.
 - ✅ Faza 3 — menu kontekstowe karteczki („Usuń", „Nowa karteczka"),
-  `~/.local/share/nemo/actions/dodaj-karteczke.nemo_action`.
+  `~/.local/share/nemo/actions/add-note.nemo_action`.
 - ✅ Faza 4 — wygląd docelowy, 9-slice okazał się niepotrzebny (obrazek
   renderowany 1:1, karta przyjmuje jego rozmiar).
 - ✅ Faza 5 — `README.md` z instalacją i ręcznym scenariuszem testowym.
@@ -54,7 +54,7 @@ ikony w menu i potwierdzanie usuwania.
 | Co | Wartość |
 |---|---|
 | Rozmiar karty | rozmiar pliku tła; `CARD_WIDTH` 350 × `CARD_HEIGHT` 100 tylko awaryjnie |
-| Tło | pole `background` w JSON, plik z `karteczki@jkatnik/img/` (domyślnie `karteczka-bristol-4.png`, 350×100; drugie dostępne: `-3`, 395×158) |
+| Tło | pole `background` w JSON, plik z `onelinenotes@jkatnik/img/` (domyślnie `paper-strip.png`, 350×100; drugie dostępne: `-3`, 395×158) |
 | Font | pole `font` w JSON jako opis Pango (domyślnie `Caveat 20`); do wyboru z menu 5 rodzin zbundlowanych w `assets/fonts/` (alfabetycznie), wszystkie z polskimi znakami |
 | Kolor atramentu | domyślnie niebieski `#112971`; z menu też czarny `#1a1a1a`, czerwony `#a51d2d`, zielony `#26653b` |
 | Padding tekstu | `{ top: 0, right: 16, bottom: 15, left: 16 }` — `bottom` podnosi tekst o 7,5 px, bo papier kończy się w ~85/100 wysokości grafiki |
@@ -64,7 +64,7 @@ ikony w menu i potwierdzanie usuwania.
 
 ### Formatowanie treści (Markdown → Pango markup)
 
-`karteczki@jkatnik/karteczki_markdown.js`, `render()` zwraca markup +
+`onelinenotes@jkatnik/onelinenotes_markdown.js`, `render()` zwraca markup +
 pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 `__podkreślenie__`, `~~przekreślenie~~`, `[tekst](url)`. Bez zagnieżdżania
 (jeden znacznik na fragment), bez nagłówków i list.
@@ -95,7 +95,7 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 - **Nowa karteczka pojawia się tam, gdzie rozwinięto menu.** Desklet
   zapamiętuje `global.get_pointer()` na `open-state-changed` menu (punkt
   otwarcia, nie punkt kliknięcia w pozycję „Nowa karteczka") i podaje go
-  skryptowi: `karteczki-nowa [x y]`. Akcja Nemo nie ma jak podać
+  skryptowi: `note-new [x y]`. Akcja Nemo nie ma jak podać
   współrzędnych, więc skrypt bez argumentów pyta o pozycję kursora przez
   Gdk. Bez argumentów i bez Gdk zostaje stara kaskada od `BASE_X/BASE_Y`.
 - **Prawoklik** → menu z ikonami. Na górze dwie najczęstsze akcje („Nowa
@@ -124,7 +124,7 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
   Normalnie pozycję odtwarza Cinnamon z gsettings, a `position` w JSON jest
   kopią informacyjną — **wyjątkiem są karteczki zakotwiczone przy prawej
   lub dolnej krawędzi** (patrz niżej), którym pozycję przelicza desklet.
-- **Kotwiczenie przy krawędziach** (`karteczki_layout.js`): karta, której
+- **Kotwiczenie przy krawędziach** (`onelinenotes_layout.js`): karta, której
   środek leży w skrajnej ⅓ **monitora**, zapisuje w JSON `anchor` —
   odległość od prawej i/lub dolnej krawędzi plus indeks monitora, zamiast
   polegać na samym `x, y`. Dzięki temu po zmianie zestawu ekranów karta przy
@@ -151,12 +151,12 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 
 ### Znane niespójności (drobne, świadome)
 
-- `assets/*.png` to źródła, `karteczki@jkatnik/img/*.png` to kopie
+- `assets/*.png` to źródła, `onelinenotes@jkatnik/img/*.png` to kopie
   ładowane przez desklet — kopiowane ręcznie, nic tego nie synchronizuje.
 - Cinnamon przy restarcie powłoki przepisuje `enabled-desklets` ze stanu w
   pamięci. Zaobserwowane raz (2026-09-07): usunięty wpis wrócił po
   `reexec_self()` jako sierota (bez pliku JSON), bo żywa instancja nie
-  została wyładowana. Powtórne `karteczki-usun` sprząta to poprawnie;
+  została wyładowana. Powtórne `note-remove` sprząta to poprawnie;
   gdyby wracało regularnie — usuwać desklet przez API Cinnamona zamiast
   samego zapisu gsettings.
 
@@ -187,7 +187,7 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
    kodzie (`on_desklet_clicked` w ogóle się nie odpala). Sprawdzić F12.
 7. **Pozycja spoza obszaru pulpitu jest korygowana przez Cinnamona** —
    desklet dodany na `3000:250` (drugi monitor) wylądował na `675:525`,
-   dosuniętym do siatki 25 px. Nie jest to błąd `karteczki-nowa`: skrypt
+   dosuniętym do siatki 25 px. Nie jest to błąd `note-new`: skrypt
    zapisuje podane współrzędne, Cinnamon je potem przestawia.
 8. Silne pomniejszanie assetu (>8×) spłaszcza fakturę papieru —
    dlatego tło ma dziś dokładnie rozmiar karty. Poprzednia proteza
@@ -196,13 +196,13 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
 ## Struktura plików (stan faktyczny)
 
 ```
-karteczki@jkatnik/                          # katalog desletu
+onelinenotes@jkatnik/                          # katalog desletu
 ├── metadata.json
 ├── desklet.js
-├── karteczki_markdown.js                   # Markdown → Pango markup + pozycje linków
-├── karteczki_layout.js                     # kotwiczenie przy krawędziach ekranu
-├── karteczki_i18n.js                       # parser .po + wybór języka
-├── po/{karteczki@jkatnik.pot,pl.po}        # tłumaczenia
+├── onelinenotes_markdown.js                   # Markdown → Pango markup + pozycje linków
+├── onelinenotes_layout.js                     # kotwiczenie przy krawędziach ekranu
+├── onelinenotes_i18n.js                       # parser .po + wybór języka
+├── po/{onelinenotes@jkatnik.pot,pl.po}        # tłumaczenia
 └── img/karteczka-bristol-{3,4}.png         # kopie assetów, ładowane w runtime
 
 assets/                                     # źródła grafik i fontów
@@ -210,21 +210,21 @@ assets/                                     # źródła grafik i fontów
 └── fonts/Caveat-{Regular,Bold}.ttf
 
 bin/
-├── karteczki_common.py                     # CRUD notatek + gsettings
-├── karteczki-nowa                          # tworzy JSON + wpis gsettings
-└── karteczki-usun <instance_id>            # kasuje JSON + wpis gsettings
+├── notes_common.py                     # CRUD notatek + gsettings
+├── note-new                          # tworzy JSON + wpis gsettings
+└── note-remove <instance_id>            # kasuje JSON + wpis gsettings
 
 tests/
-├── test_karteczki_common.py                # unittest, gsettings zamockowane
-└── test_desklet_json.gjs                   # self-check logiki GJS
+├── test_notes_common.py                # unittest, gsettings zamockowane
+└── test_desklet.gjs                   # self-check logiki GJS
 
 README.md                                   # instalacja, obsługa, scenariusz testowy
-dodaj-karteczke.nemo_action                 # wzorzec z __KARTECZKI__ zamiast ścieżki
+add-note.nemo_action                 # wzorzec z __ONELINENOTES__ zamiast ścieżki
 
 ~/.local/share/nemo/actions/
-└── dodaj-karteczke.nemo_action             # zainstalowana kopia (ścieżka podstawiona)
+└── add-note.nemo_action             # zainstalowana kopia (ścieżka podstawiona)
 
-~/.local/share/karteczki/
+~/.local/share/onelinenotes/
 ├── <uuid>.json                             # dane jednej karteczki
 ├── instances.json                          # mapowanie instance_id → uuid
 └── settings.json                           # ustawienia wspólne: język, potwierdzanie usuwania
@@ -240,7 +240,7 @@ Nie powstały (i nie są potrzebne): `settings-schema.json`, `icon.png`.
   "content": "tekst w **Markdown**",
   "color": "#112971",
   "font": "Caveat 20",
-  "background": "karteczka-bristol-4.png",
+  "background": "paper-strip.png",
   "rotation": 2.27,
   "position": { "x": 100, "y": 100 },
   "anchor": { "right": 130, "bottom": 40, "monitor": 0 },
@@ -254,7 +254,7 @@ dolnej krawędzi swojego monitora — z osiami, które są zakotwiczone, i
 indeksem monitora.
 `font` to pełny opis Pango (rodzina + rozmiar) — rodzinę można podmienić
 ręcznie w pliku, menu zmienia tylko rozmiar. `background` to sama nazwa
-pliku z `karteczki@jkatnik/img/`; nazwa nieistniejącego pliku cofa się do
+pliku z `onelinenotes@jkatnik/img/`; nazwa nieistniejącego pliku cofa się do
 domyślnego tła przy wczytaniu notatki.
 
 ## Fazy
@@ -269,7 +269,7 @@ realne nazwy kluczy, nie planowane `multiInstance`/`decoration`),
 `desklet.js` czyta JSON po `instance_id` przez `instances.json`.
 
 ### ✅ Faza 2 — trwałość i CRUD
-`karteczki-nowa` / `karteczki-usun` + `karteczki_common.py`, zapis pozycji
+`note-new` / `note-remove` + `notes_common.py`, zapis pozycji
 na `drag-end`, zapis treści przy wyjściu z edycji (Enter / klik poza
 kartą), z aktualizacją `modified_at`.
 
@@ -278,7 +278,7 @@ Pozycje „Usuń" i „Nowa karteczka" w menu prawoklika desletu, ten sam
 skrypt podpięty pod akcję Nemo.
 
 ### ✅ Faza 4 — wygląd docelowy
-Tło `karteczka-bristol-4.png` renderowane 1:1 w rozmiarze karty (350×100)
+Tło `paper-strip.png` renderowane 1:1 w rozmiarze karty (350×100)
 przez `Clutter.Image` — 9-slice niepotrzebny, bo obrazek nie jest skalowany
 (w Fazie 6 rozmiar karty zaczął się brać wprost z pliku tła).
 Font Caveat zbundlowany w `assets/fonts/` i zainstalowany (zmiana decyzji
@@ -297,7 +297,7 @@ z AGENTS.md, gdzie był traktowany jako zależność systemowa).
 Oba wyborniki chodzą tym samym wzorcem co kolor atramentu (`_addChoiceMenu`:
 podmenu z kropką przy aktywnej pozycji → zapis pola w JSON → przerysowanie).
 
-**Tło (`background`)** — sama nazwa pliku z `karteczki@jkatnik/img/`, więc
+**Tło (`background`)** — sama nazwa pliku z `onelinenotes@jkatnik/img/`, więc
 JSON nie zawiera ścieżek absolutnych i przetrwa przeniesienie repo. Podmenu
 listuje `img/*.png` przez `Gio.File.enumerate_children`. **Rozmiar karty
 bierze się z pliku** (`pixbuf.get_width/height`), a nie z `CARD_WIDTH`/
@@ -344,7 +344,7 @@ sudo), więc `.pot` powstaje przez `xgettext`, a dwa ciągi z `metadata.json`
 są w nim dopisane ręcznie. Do PR-a w Spices i tak trzeba przejechać
 `./cinnamon-spices-makepot UUID` z ich repozytorium.
 
-**Wybór języka z menu** (`karteczki_i18n.js`), niezależny od locale sesji.
+**Wybór języka z menu** (`onelinenotes_i18n.js`), niezależny od locale sesji.
 gettext tłumaczy wyłącznie na język procesu, a Cinnamon to jeden proces dla
 całego pulpitu — wymuszenie przez `setlocale` przestawiłoby też panel i menu
 systemowe. Dlatego przy wymuszonym języku `.po` czytany jest wprost (parser
@@ -390,7 +390,7 @@ function _(str) { return Gettext.dgettext(UUID, str); }
 ### ✅ Faza 9 — licencja GPL-3.0
 
 Zrobione: `LICENSE` (pełny GPL-3.0), nagłówki copyright w `desklet.js`,
-`karteczki_markdown.js`, `karteczki_layout.js`, `karteczki_i18n.js` i w
+`onelinenotes_markdown.js`, `onelinenotes_layout.js`, `onelinenotes_i18n.js` i w
 skryptach `bin/`, sekcja „Licencja" w README. Kod idzie jako
 **GPL-3.0-or-later**.
 
@@ -409,7 +409,7 @@ GPL-3.0 to osobne dzieło, ale warto to potwierdzić zamiast zakładać.
 ### Poprzedni plan tej fazy (dla porządku)
 
 - `LICENSE` z pełnym tekstem GPL-3.0 w katalogu repo + krótki nagłówek
-  copyright w `desklet.js`, `karteczki_markdown.js` i skryptach `bin/*.py`.
+  copyright w `desklet.js`, `onelinenotes_markdown.js` i skryptach `bin/*.py`.
   Sekcja „Licencja" w README.
 - **Font Caveat ma własną licencję (OFL-1.1), nie GPL** — jeśli zostaje w
   repo, potrzebuje osobnego katalogu z kopią OFL i notą, że jego licencja
@@ -425,12 +425,12 @@ GPL-3.0 to osobne dzieło, ale warto to potwierdzić zamiast zakładać.
 ### 🔶 Faza 10 — publikacja w Cinnamon Spices (przygotowana, PR niewysłany)
 
 Zrobione:
-- `bin/` przeniesione do `karteczki@jkatnik/bin/` — desklet woła skrypty
+- `bin/` przeniesione do `onelinenotes@jkatnik/bin/` — desklet woła skrypty
   ścieżką względem `DESKLET_ROOT`, bo poza repo deweloperskim nie ma nic obok
   katalogu xleta.
 - **Akcja Nemo zakłada się sama** przy pierwszym starcie (decyzja użytkownika
-  z 2026-09-07): wzorzec `dodaj-karteczke.nemo_action` leży w katalogu xleta,
-  `__KARTECZKI__` jest podmieniane na `DESKLET_ROOT`. Skasowanie akcji przez
+  z 2026-09-07): wzorzec `add-note.nemo_action` leży w katalogu xleta,
+  `__ONELINENOTES__` jest podmieniane na `DESKLET_ROOT`. Skasowanie akcji przez
   użytkownika jest respektowane (flaga `nemoActionInstalled` w
   `settings.json`), ale wpis z martwym `Exec` zostaje naprawiony — inaczej po
   przeniesieniu repo pozycja w menu pulpitu po cichu przestaje działać. Tak
@@ -447,8 +447,8 @@ Zrobione:
   gdzie językiem jest angielski. PLAN.md i AGENTS.md zostają po polsku.
 
 Zostało:
-- **`screenshot.png`** — zrzut karteczek na pulpicie. Nie da się go zrobić,
-  dopóki karty są przykryte oknami; do zrobienia przez użytkownika.
+- Wysłanie PR-a. `screenshot.png` dostarczony przez użytkownika (`assets/`),
+  walidacja `tools/build-spice` przechodzi.
 - Wysłanie PR-a (fork `linuxmint/cinnamon-spices-desklets`, jeden xlet na PR)
   i zapytanie maintainerów o dwie rzeczy: licencję GPL-3.0 przy repo
   oznaczonym GPL-2.0 oraz to, czy desklet może zakładać plik poza swoim
@@ -459,15 +459,15 @@ Zostało:
 Wymagany układ katalogów (z README repozytorium Spices):
 
 ```
-karteczki@jkatnik/
+onelinenotes@jkatnik/
 ├── info.json          # {"author": "<nazwa użytkownika GitHub>"}
 ├── screenshot.png     # zrzut karteczek na pulpicie
 ├── README.md
 └── files/
-    └── karteczki@jkatnik/     # files/ zawiera TYLKO ten katalog
+    └── onelinenotes@jkatnik/     # files/ zawiera TYLKO ten katalog
         ├── metadata.json      # uuid, name, description, version, author, max-instances, last-edited
         ├── desklet.js
-        ├── karteczki_markdown.js
+        ├── onelinenotes_markdown.js
         ├── icon.png           # ikona w menu deskletów — jeszcze nie istnieje
         ├── img/
         └── po/
