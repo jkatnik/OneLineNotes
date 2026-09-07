@@ -53,7 +53,7 @@ Pierwsza karteczka: prawoklik na pulpicie → „Dodaj karteczkę", albo
 | Klik poza karteczką | zapis i wyjście z edycji |
 | Przeciągnięcie | zmiana pozycji (zapisywana od razu) |
 | Ctrl+klik w link | otwarcie w przeglądarce (`xdg-open`) |
-| Prawoklik | menu: kolor atramentu, tło, czcionka, rozmiar tekstu, język, formatowanie, usuń, nowa karteczka |
+| Prawoklik | menu: nowa karteczka, usuń — a pod separatorem ustawienia: kolor atramentu, tło, czcionka, rozmiar tekstu, język, formatowanie |
 
 „Usuń" pyta o potwierdzenie; checkbox **Nie pytaj ponownie** wyłącza pytanie
 na stałe (zapisywane w `settings.json`, wspólne dla wszystkich karteczek).
@@ -97,15 +97,15 @@ cytatów. W pliku JSON zapisywany jest zawsze surowy Markdown. Tę samą
 - **Obrót** — każda karteczka dostaje przy tworzeniu losowy kąt ±3°, żeby
   wyglądały na rozrzucone. Kąt siedzi w polu `rotation` i nie zmienia się
   między restartami; `"rotation": 0` prostuje karteczkę.
-- **Czcionka** — podmenu „Czcionka" z krojami zbundlowanymi w repo: Caveat,
-  Indie Flower, Gloria Hallelujah, Architects Daughter, Shadows Into Light,
-  Amatic SC. Wszystkie mają komplet polskich znaków. Rodzina i rozmiar
+- **Czcionka** — podmenu „Czcionka" z krojami zbundlowanymi w repo:
+  Architects Daughter, Caveat, Gloria Hallelujah, Indie Flower, Shadows Into
+  Light. Wszystkie mają komplet polskich znaków. Rodzina i rozmiar
   siedzą w jednym polu `font` (opis Pango, np. `"Caveat 20"`), więc zmiana
   jednego zachowuje drugie; ręcznie wpisana rodzina spoza listy też zadziała,
   o ile jest zainstalowana w systemie.
 
-  Prawdziwą odmianę pogrubioną mają tylko Caveat i Amatic SC — w pozostałych
-  krojach `**pogrubienie**` Pango syntetyzuje, co widać.
+  Prawdziwą odmianę pogrubioną ma tylko Caveat — w pozostałych krojach
+  `**pogrubienie**` Pango syntetyzuje, co widać.
 
 ## Tłumaczenia
 
@@ -191,9 +191,9 @@ Po zmianach w desklecie warto przejść całą ścieżkę:
 Kod: **GPL-3.0-or-later** (pełny tekst w [LICENSE](LICENSE)).
 
 Czcionki w `assets/fonts/` mają **własną licencję** — SIL Open Font License
-1.1 (`assets/fonts/OFL.txt`); copyright: The Caveat Project Authors (Caveat),
-Kimberly Geswein (Indie Flower, Gloria Hallelujah, Architects Daughter,
-Shadows Into Light) i The Amatic SC Project Authors. To nie
+1.1 (`assets/fonts/OFL.txt`); copyright: The Caveat Project Authors (Caveat)
+i Kimberly Geswein (Architects Daughter, Gloria Hallelujah, Indie Flower,
+Shadows Into Light). To nie
 jest konflikt: OFL nie obejmuje programu, który font dołącza, więc obie
 licencje po prostu współistnieją w repozytorium. Warunki OFL, o których warto
 pamiętać przy redystrybucji: font nie może być sprzedawany samodzielnie, a

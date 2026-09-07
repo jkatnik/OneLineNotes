@@ -6,13 +6,9 @@ Caveat-Regular.ttf, Caveat-Bold.ttf
     Copyright 2014 The Caveat Project Authors
     https://github.com/googlefonts/caveat
 
-IndieFlower-Regular.ttf, GloriaHallelujah-Regular.ttf,
-ArchitectsDaughter-Regular.ttf, ShadowsIntoLight-Regular.ttf
+ArchitectsDaughter-Regular.ttf, GloriaHallelujah-Regular.ttf,
+IndieFlower-Regular.ttf, ShadowsIntoLight-Regular.ttf
     Copyright (c) 2010, Kimberly Geswein (kimberlygeswein.com)
-
-AmaticSC-Regular.ttf, AmaticSC-Bold.ttf
-    Copyright 2015 The Amatic SC Project Authors
-    https://github.com/googlefonts/AmaticSC
 
 Wszystkie pobrane z Google Fonts (https://fonts.google.com).
 

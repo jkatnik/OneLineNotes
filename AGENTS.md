@@ -62,11 +62,11 @@ tych mechanizmów.
   jest zawsze surowy Markdown; tryb edycji pokazuje właśnie jego.
   Zagnieżdżanie znaczników, nagłówki, listy i cytaty: nadal poza zakresem.
 - **Czcionki zbundlowane w repo (`assets/fonts/`), instalowane do
-  `~/.local/share/fonts/` + `fc-cache`.** Sześć rodzin z Google Fonts, każda
+  `~/.local/share/fonts/` + `fc-cache`.** Pięć rodzin z Google Fonts, każda
   sprawdzona pod kątem polskich znaków (`fc-query` musi zgłaszać `pl`):
-  Caveat, Indie Flower, Gloria Hallelujah, Architects Daughter, Shadows Into
-  Light, Amatic SC. Prawdziwą odmianę bold mają tylko Caveat i Amatic SC —
-  reszta dostaje syntetyczne pogrubienie od Pango. Decyzja zmieniona względem
+  Architects Daughter, Caveat, Gloria Hallelujah, Indie Flower, Shadows Into
+  Light (lista alfabetyczna, tak też pokazuje ją menu). Prawdziwą odmianę
+  bold ma tylko Caveat — reszta dostaje syntetyczne pogrubienie od Pango. Decyzja zmieniona względem
   pierwotnego planu (miał być czystą zależnością systemową, ręcznie
   instalowaną przez użytkownika) — dociągnięty automatycznie z Google
   Fonts, żeby nie zależeć od ręcznego kroku. Nadal bez kodu rejestrującego

@@ -99,12 +99,11 @@ function inkColors() {
 // Rodziny zbundlowane w assets/fonts/. Nazwy własne, więc nie tłumaczymy —
 // listy fontów systemowych świadomie nie ma (setki pozycji w menu karteczki).
 const FONT_FAMILIES = [
-    "Caveat",
-    "Indie Flower",
-    "Gloria Hallelujah",
     "Architects Daughter",
+    "Caveat",
+    "Gloria Hallelujah",
+    "Indie Flower",
     "Shadows Into Light",
-    "Amatic SC",
 ];
 
 function fontFamily(spec) {
@@ -564,6 +563,18 @@ MyDesklet.prototype = {
     },
 
     _buildContextMenu: function () {
+        // Najpierw dwie akcje, których używa się najczęściej, potem separator
+        // i ustawienia wyglądu — inaczej "Nowa karteczka" ginie pod podmenu.
+        let newItem = new PopupMenu.PopupIconMenuItem(_("New note"), "list-add-symbolic", St.IconType.SYMBOLIC);
+        newItem.connect("activate", Lang.bind(this, this._onNewClicked));
+        this._menu.addMenuItem(newItem);
+
+        let removeItem = new PopupMenu.PopupIconMenuItem(_("Remove"), "user-trash-symbolic", St.IconType.SYMBOLIC);
+        removeItem.connect("activate", Lang.bind(this, this._onRemoveClicked));
+        this._menu.addMenuItem(removeItem);
+
+        this._menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
         this._addChoiceMenu(_("Ink color"), "color-select-symbolic",
             inkColors().map(function (ink) { return { name: ink.name, value: ink.hex }; }),
             Lang.bind(this, function (hex) { return (this.note.color || DEFAULT_COLOR) === hex; }),
@@ -603,14 +614,6 @@ MyDesklet.prototype = {
         let helpItem = new PopupMenu.PopupIconMenuItem(_("Formatting"), "format-text-bold-symbolic", St.IconType.SYMBOLIC);
         helpItem.connect("activate", Lang.bind(this, this._showFormattingHelp));
         this._menu.addMenuItem(helpItem);
-
-        let removeItem = new PopupMenu.PopupIconMenuItem(_("Remove"), "user-trash-symbolic", St.IconType.SYMBOLIC);
-        removeItem.connect("activate", Lang.bind(this, this._onRemoveClicked));
-        this._menu.addMenuItem(removeItem);
-
-        let newItem = new PopupMenu.PopupIconMenuItem(_("New note"), "list-add-symbolic", St.IconType.SYMBOLIC);
-        newItem.connect("activate", Lang.bind(this, this._onNewClicked));
-        this._menu.addMenuItem(newItem);
     },
 
     // Język jest ustawieniem wspólnym, więc po zmianie trzeba przemalować

@@ -54,7 +54,7 @@ ikony w menu i potwierdzanie usuwania.
 |---|---|
 | Rozmiar karty | rozmiar pliku tła; `CARD_WIDTH` 350 × `CARD_HEIGHT` 100 tylko awaryjnie |
 | Tło | pole `background` w JSON, plik z `karteczki@jkatnik/img/` (domyślnie `karteczka-bristol-4.png`, 350×100; drugie dostępne: `-3`, 395×158) |
-| Font | pole `font` w JSON jako opis Pango (domyślnie `Caveat 20`); do wyboru z menu 6 rodzin zbundlowanych w `assets/fonts/`, wszystkie z polskimi znakami |
+| Font | pole `font` w JSON jako opis Pango (domyślnie `Caveat 20`); do wyboru z menu 5 rodzin zbundlowanych w `assets/fonts/` (alfabetycznie), wszystkie z polskimi znakami |
 | Kolor atramentu | domyślnie niebieski `#112971`; z menu też czarny `#1a1a1a`, czerwony `#a51d2d`, zielony `#26653b` |
 | Padding tekstu | `{ top: 0, right: 16, bottom: 15, left: 16 }` — `bottom` podnosi tekst o 7,5 px, bo papier kończy się w ~85/100 wysokości grafiki |
 | Wyrównanie | `Clutter.BinLayout`, `y_align: CENTER`, `x_align: START` |
@@ -97,9 +97,11 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
   skryptowi: `karteczki-nowa [x y]`. Akcja Nemo nie ma jak podać
   współrzędnych, więc skrypt bez argumentów pyta o pozycję kursora przez
   Gdk. Bez argumentów i bez Gdk zostaje stara kaskada od `BASE_X/BASE_Y`.
-- **Prawoklik** → menu z ikonami: podmenu „Kolor atramentu", „Tło",
-  „Czcionka", „Rozmiar tekstu" i „Język" (każde z kropką przy aktywnej),
-  „Formatowanie" (okno ze ściągawką Markdown), „Usuń", „Nowa karteczka".
+- **Prawoklik** → menu z ikonami. Na górze dwie najczęstsze akcje („Nowa
+  karteczka", „Usuń"), separator, dalej ustawienia: podmenu „Kolor
+  atramentu", „Tło", „Czcionka", „Rozmiar tekstu" i „Język" (każde z kropką
+  przy aktywnej pozycji) oraz
+  „Formatowanie" (okno ze ściągawką Markdown).
   Ikona podmenu musi siedzieć **w jednym aktorze razem z etykietą**:
   `PopupSubMenuMenuItem` nie przyjmuje ikony, a dołożenie jej jako osobnego
   aktora dokłada pozycji kolumnę — szerokości kolumn są wspólne dla całego
@@ -310,7 +312,7 @@ tekstu pozostaje konwencją „papier kończy się w ~85% wysokości".
 
 **Czcionka (`font`)** — pełny opis Pango w jednym polu (`"Caveat 20"`), bo
 dokładnie to przyjmuje `Clutter.Text.font_name`. Menu ma osobno rodzinę
-(6 krojów zbundlowanych w repo) i rozmiar (Mała 16 / Średnia 20 / Duża 24);
+(5 krojów zbundlowanych w repo) i rozmiar (Mała 16 / Średnia 20 / Duża 24);
 zmiana jednego wymiaru zachowuje drugi, więc ręcznie wpisana rodzina spoza
 listy przeżywa zmianę rozmiaru. Enumerowania `Pango.FontMap.list_families()`
 świadomie nie ma — to setki pozycji w menu karteczki. Wartość bez rozmiaru (notatki
