@@ -61,8 +61,12 @@ tych mechanizmów.
   parsera Markdown i bez budowania drzewa aktorów St. W JSON zapisywany
   jest zawsze surowy Markdown; tryb edycji pokazuje właśnie jego.
   Zagnieżdżanie znaczników, nagłówki, listy i cytaty: nadal poza zakresem.
-- **Font Caveat zbundlowany w repo (`assets/fonts/`), instalowany do
-  `~/.local/share/fonts/` + `fc-cache`.** Decyzja zmieniona względem
+- **Czcionki zbundlowane w repo (`assets/fonts/`), instalowane do
+  `~/.local/share/fonts/` + `fc-cache`.** Sześć rodzin z Google Fonts, każda
+  sprawdzona pod kątem polskich znaków (`fc-query` musi zgłaszać `pl`):
+  Caveat, Indie Flower, Gloria Hallelujah, Architects Daughter, Shadows Into
+  Light, Amatic SC. Prawdziwą odmianę bold mają tylko Caveat i Amatic SC —
+  reszta dostaje syntetyczne pogrubienie od Pango. Decyzja zmieniona względem
   pierwotnego planu (miał być czystą zależnością systemową, ręcznie
   instalowaną przez użytkownika) — dociągnięty automatycznie z Google
   Fonts, żeby nie zależeć od ręcznego kroku. Nadal bez kodu rejestrującego
@@ -82,7 +86,8 @@ tych mechanizmów.
 
 - Kolor atramentu, tło i rozmiar tekstu wybierane z menu kontekstowego, ale
   z zamkniętych list: bez color pickera, bez wyboru pliku z dysku i bez
-  listy rodzin czcionek (rodzinę zmienia się ręcznie w polu `font`).
+  listy fontów systemowych — do wyboru są tylko kroje zbundlowane w
+  `assets/fonts/`, dowolny inny wpisuje się ręcznie w pole `font`.
 - Brak zagnieżdżonego formatowania Markdown, nagłówków, list i cytatów —
   tylko pogrubienie, kursywa, podkreślenie, przekreślenie i link.
 - Brak własnego mechanizmu przeciągania — używamy wbudowanego drag
@@ -96,8 +101,9 @@ tych mechanizmów.
   ciągi idą przez `_()` (`Gettext.dgettext(UUID, …)`), polski siedzi w
   `karteczki@jkatnik/po/pl.po`, a `.mo` instaluje się do
   `~/.local/share/locale`. Nowy ciąg w kodzie = aktualizacja `.pot` i `.po`
-  (komendy w README). Bez opcji wyboru języka w desklecie — bierze się z
-  ustawień sesji.
+  (komendy w README). Język można wybrać w menu karteczki niezależnie od
+  locale sesji — przy wymuszonym języku `.po` czytany jest wprost, bo gettext
+  tłumaczy tylko na język procesu, a proces jest jeden dla całego pulpitu.
 
 ## Konwencje
 

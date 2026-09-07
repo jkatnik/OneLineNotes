@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: karteczki@jkatnik\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 12:30+0200\n"
+"POT-Creation-Date: 2026-09-07 14:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,131 +17,135 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: karteczki@jkatnik/desklet.js:80
+#: karteczki@jkatnik/desklet.js:92
 msgid "Black"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:81
+#: karteczki@jkatnik/desklet.js:93
 msgid "Red"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:82
+#: karteczki@jkatnik/desklet.js:94
 msgid "Blue"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:83
+#: karteczki@jkatnik/desklet.js:95
 msgid "Green"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:89
+#: karteczki@jkatnik/desklet.js:121
 msgid "Small"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:90
+#: karteczki@jkatnik/desklet.js:122
 msgid "Medium"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:91
+#: karteczki@jkatnik/desklet.js:123
 msgid "Large"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:98
+#: karteczki@jkatnik/desklet.js:130
 msgid "bold"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:99
+#: karteczki@jkatnik/desklet.js:131
 msgid "italic"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:100
+#: karteczki@jkatnik/desklet.js:132
 msgid "underline"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:101
+#: karteczki@jkatnik/desklet.js:133
 msgid "strikethrough"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:102 karteczki@jkatnik/desklet.js:103
+#: karteczki@jkatnik/desklet.js:134 karteczki@jkatnik/desklet.js:135
 msgid "text"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:102
+#: karteczki@jkatnik/desklet.js:134
 msgid "address"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:129
+#: karteczki@jkatnik/desklet.js:161
 msgid "Paper strip"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:130
+#: karteczki@jkatnik/desklet.js:162
 msgid "Tall paper"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:235
+#: karteczki@jkatnik/desklet.js:267
 msgid "(no note data — remove this one and add a new note from the desktop menu)"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:518
+#: karteczki@jkatnik/desklet.js:567
 msgid "Ink color"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:527
+#: karteczki@jkatnik/desklet.js:576
 msgid "Background"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:534
+#: karteczki@jkatnik/desklet.js:583
+msgid "Font"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:588
 msgid "Text size"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:541
+#: karteczki@jkatnik/desklet.js:595
 msgid "System language"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:545
+#: karteczki@jkatnik/desklet.js:599
 msgid "Language"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:549
+#: karteczki@jkatnik/desklet.js:603
 msgid "Formatting"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:553 karteczki@jkatnik/desklet.js:697
+#: karteczki@jkatnik/desklet.js:607 karteczki@jkatnik/desklet.js:751
 msgid "Remove"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:557
+#: karteczki@jkatnik/desklet.js:611
 msgid "New note"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:583
+#: karteczki@jkatnik/desklet.js:637
 msgid "Note formatting"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:600
+#: karteczki@jkatnik/desklet.js:654
 msgid "Markers do not nest. Ctrl+click opens a link."
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:601
+#: karteczki@jkatnik/desklet.js:655
 msgid "Double-click starts editing, Enter saves, Escape cancels."
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:607
+#: karteczki@jkatnik/desklet.js:661
 msgid "Close"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:681
+#: karteczki@jkatnik/desklet.js:735
 msgid "Remove this note?"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:684
+#: karteczki@jkatnik/desklet.js:738
 msgid "Its file will be deleted permanently."
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:686
+#: karteczki@jkatnik/desklet.js:740
 msgid "Don't ask again"
 msgstr ""
 
-#: karteczki@jkatnik/desklet.js:692
+#: karteczki@jkatnik/desklet.js:746
 msgid "Cancel"
 msgstr ""
 

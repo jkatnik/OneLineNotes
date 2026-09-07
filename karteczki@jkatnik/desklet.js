@@ -96,6 +96,26 @@ function inkColors() {
     ];
 }
 
+// Rodziny zbundlowane w assets/fonts/. Nazwy własne, więc nie tłumaczymy —
+// listy fontów systemowych świadomie nie ma (setki pozycji w menu karteczki).
+const FONT_FAMILIES = [
+    "Caveat",
+    "Indie Flower",
+    "Gloria Hallelujah",
+    "Architects Daughter",
+    "Shadows Into Light",
+    "Amatic SC",
+];
+
+function fontFamily(spec) {
+    return fontSpec(spec).replace(/\s+\d+$/, "");
+}
+
+function fontSizeOf(spec) {
+    let match = /(\d+)$/.exec(fontSpec(spec));
+    return match ? parseInt(match[1], 10) : 20;
+}
+
 function fontSizes() {
     return [
         { name: _("Small"), size: 16 },
@@ -403,7 +423,17 @@ MyDesklet.prototype = {
     },
 
     _setFontSize: function (size) {
-        this.note.font = fontSpec(this.note.font).replace(/\d+$/, String(size));
+        this._setFont(fontFamily(this.note.font), size);
+    },
+
+    _setFontFamily: function (family) {
+        this._setFont(family, fontSizeOf(this.note.font));
+    },
+
+    // Rodzina i rozmiar mieszkają w jednym polu `font` (opis Pango), więc
+    // zmiana jednego wymiaru musi zachować drugi.
+    _setFont: function (family, size) {
+        this.note.font = family + " " + size;
         this._saveNote();
         this._text.set_font_name(this.note.font);
     },
@@ -549,6 +579,11 @@ MyDesklet.prototype = {
             }),
             Lang.bind(this, function (file) { return (this.note.background || DEFAULT_BACKGROUND) === file; }),
             Lang.bind(this, this._setBackground));
+
+        this._addChoiceMenu(_("Font"), "font-select-symbolic",
+            FONT_FAMILIES.map(function (family) { return { name: family, value: family }; }),
+            Lang.bind(this, function (family) { return fontFamily(this.note.font) === family; }),
+            Lang.bind(this, this._setFontFamily));
 
         this._addChoiceMenu(_("Text size"), "font-x-generic-symbolic",
             fontSizes().map(function (f) { return { name: f.name, value: f.size }; }),

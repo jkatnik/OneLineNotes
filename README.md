@@ -18,9 +18,9 @@ cd ~/code/linux/karteczki
 # 1. desklet widoczny dla Cinnamona
 ln -s "$PWD/karteczki@jkatnik" ~/.local/share/cinnamon/desklets/
 
-# 2. czcionka Caveat (zbundlowana w repo)
+# 2. czcionki (zbundlowane w repo, wszystkie z polskimi znakami)
 mkdir -p ~/.local/share/fonts
-cp assets/fonts/Caveat-*.ttf ~/.local/share/fonts/
+cp assets/fonts/*.ttf ~/.local/share/fonts/
 fc-cache -f
 
 # 3. tłumaczenia (interfejs jest po angielsku, polski w po/pl.po)
@@ -53,7 +53,7 @@ Pierwsza karteczka: prawoklik na pulpicie → „Dodaj karteczkę", albo
 | Klik poza karteczką | zapis i wyjście z edycji |
 | Przeciągnięcie | zmiana pozycji (zapisywana od razu) |
 | Ctrl+klik w link | otwarcie w przeglądarce (`xdg-open`) |
-| Prawoklik | menu: kolor atramentu, tło, rozmiar tekstu, język, formatowanie, usuń, nowa karteczka |
+| Prawoklik | menu: kolor atramentu, tło, czcionka, rozmiar tekstu, język, formatowanie, usuń, nowa karteczka |
 
 „Usuń" pyta o potwierdzenie; checkbox **Nie pytaj ponownie** wyłącza pytanie
 na stałe (zapisywane w `settings.json`, wspólne dla wszystkich karteczek).
@@ -97,10 +97,15 @@ cytatów. W pliku JSON zapisywany jest zawsze surowy Markdown. Tę samą
 - **Obrót** — każda karteczka dostaje przy tworzeniu losowy kąt ±3°, żeby
   wyglądały na rozrzucone. Kąt siedzi w polu `rotation` i nie zmienia się
   między restartami; `"rotation": 0` prostuje karteczkę.
-- **Rodzina czcionki** — pole `font` w pliku notatki to pełny opis Pango
-  (`"Caveat 20"`); wpisana ręcznie inna rodzina przeżyje zmianę rozmiaru
-  z menu. Font musi być zainstalowany w systemie, a Cinnamon zrestartowany
-  po jego instalacji.
+- **Czcionka** — podmenu „Czcionka" z krojami zbundlowanymi w repo: Caveat,
+  Indie Flower, Gloria Hallelujah, Architects Daughter, Shadows Into Light,
+  Amatic SC. Wszystkie mają komplet polskich znaków. Rodzina i rozmiar
+  siedzą w jednym polu `font` (opis Pango, np. `"Caveat 20"`), więc zmiana
+  jednego zachowuje drugie; ręcznie wpisana rodzina spoza listy też zadziała,
+  o ile jest zainstalowana w systemie.
+
+  Prawdziwą odmianę pogrubioną mają tylko Caveat i Amatic SC — w pozostałych
+  krojach `**pogrubienie**` Pango syntetyzuje, co widać.
 
 ## Tłumaczenia
 
@@ -186,7 +191,9 @@ Po zmianach w desklecie warto przejść całą ścieżkę:
 Kod: **GPL-3.0-or-later** (pełny tekst w [LICENSE](LICENSE)).
 
 Czcionki w `assets/fonts/` mają **własną licencję** — SIL Open Font License
-1.1 (`assets/fonts/OFL.txt`), copyright The Caveat Project Authors. To nie
+1.1 (`assets/fonts/OFL.txt`); copyright: The Caveat Project Authors (Caveat),
+Kimberly Geswein (Indie Flower, Gloria Hallelujah, Architects Daughter,
+Shadows Into Light) i The Amatic SC Project Authors. To nie
 jest konflikt: OFL nie obejmuje programu, który font dołącza, więc obie
 licencje po prostu współistnieją w repozytorium. Warunki OFL, o których warto
 pamiętać przy redystrybucji: font nie może być sprzedawany samodzielnie, a
@@ -201,7 +208,8 @@ licencją co kod.
 
 - Karteczka rzucona przy krawędzi ekranu może częściowo z niego wystawać;
   pozycję spoza obszaru pulpitu Cinnamon przestawia na siatkę 25 px.
-- Rodziny czcionki nie wybiera się z menu — tylko rozmiar (reszta w JSON).
+- Z menu wybiera się tylko kroje zbundlowane w repo; dowolny font
+  systemowy trzeba wpisać ręcznie w pole `font` notatki.
 - `dodaj-karteczke.nemo_action` zawiera bezwzględną ścieżkę do
   `bin/karteczki-nowa` — po przeniesieniu repo trzeba go wygenerować
   ponownie (krok 3 instalacji).
