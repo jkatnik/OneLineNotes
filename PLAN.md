@@ -310,7 +310,27 @@ karteczka) plus przypomnienie o Ctrl+kliku i dwukliku. `close()` w
 Cinnamonie domyślnie zwalnia grab i niszczy dialog (`destroyOnClose: true`),
 więc nie ma czego sprzątać ręcznie.
 
-### ⬜ Faza 8 — i18n (gettext)
+### ✅ Faza 8 — i18n (gettext)
+
+Zrobione: `Gettext.dgettext(UUID, …)` z `bindtextdomain` na
+`~/.local/share/locale`, wszystkie widoczne ciągi przeszły na angielskie
+`msgid` (28 sztuk razem z `name`/`description`), polski wrócił jako
+`po/pl.po`. Etykiety teł mają własne tłumaczenia (`Paper strip`,
+`Tall paper`), nazwy plików zostały bez zmian — pole `background` w
+istniejących notatkach nadal pasuje. Komunikaty `logWarning` zostają
+angielskie, bo to log dla dewelopera, nie interfejs.
+
+Odstępstwo od pierwotnego pomysłu: `cinnamon-xlet-makepot` wymaga pakietu
+`python3-polib`, którego nie ma w systemie (instalacja przez `apt` wymaga
+sudo), więc `.pot` powstaje przez `xgettext`, a dwa ciągi z `metadata.json`
+są w nim dopisane ręcznie. Do PR-a w Spices i tak trzeba przejechać
+`./cinnamon-spices-makepot UUID` z ich repozytorium.
+
+Uwaga: sesja na tej maszynie ma `LANGUAGE=en_US`, więc interfejs desletu
+jest tu angielski. Polskie tłumaczenie sprawdzone przez `dgettext` przy
+`LANGUAGE=pl` — wchodzi poprawnie.
+
+### Poprzedni plan tej fazy (dla porządku)
 
 Wzorzec z deskletów w Spices (sprawdzony w zainstalowanym
 `notes@schorschii`):

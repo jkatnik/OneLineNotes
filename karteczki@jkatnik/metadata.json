@@ -1,7 +1,7 @@
 {
     "uuid": "karteczki@jkatnik",
-    "name": "Karteczka",
-    "description": "Karteczka samoprzylepna z treścią w Markdown",
+    "name": "Sticky Notes",
+    "description": "Sticky notes on the desktop, with Markdown formatting",
     "version": "1.0",
     "max-instances": "-1",
     "prevent-decorations": true

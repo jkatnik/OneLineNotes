@@ -13,8 +13,18 @@ const PopupMenu = imports.ui.popupMenu;
 const ModalDialog = imports.ui.modalDialog;
 const ByteArray = imports.byteArray;
 
+const Gettext = imports.gettext;
+
 const UUID = "karteczki@jkatnik";
 const DESKLET_ROOT = imports.ui.deskletManager.deskletMeta[UUID].path;
+
+// Tłumaczenia instalują się do ~/.local/share/locale (tak robi
+// cinnamon-spices-makepot --install i tam szukają ich pozostałe xlety).
+Gettext.bindtextdomain(UUID, GLib.get_home_dir() + "/.local/share/locale");
+
+function _(str) {
+    return Gettext.dgettext(UUID, str);
+}
 imports.searchPath.unshift(DESKLET_ROOT);
 const Markdown = imports.karteczki_markdown;
 const Layout = imports.karteczki_layout;
@@ -27,25 +37,27 @@ const CARD_HEIGHT = 100;
 const DEFAULT_BACKGROUND = "karteczka-bristol-4.png";
 const DEFAULT_FONT = "Caveat 20";
 const FONT_SIZES = [
-    { name: "Mała", size: 16 },
-    { name: "Średnia", size: 20 },
-    { name: "Duża", size: 24 },
+    { name: _("Small"), size: 16 },
+    { name: _("Medium"), size: 20 },
+    { name: _("Large"), size: 24 },
 ];
 const DEFAULT_COLOR = "#112971";
 const MAX_ROTATION = 3;  // stopnie w każdą stronę — karteczki mają wyglądać na rzucone, nie przekrzywione
 const INK_COLORS = [
-    { name: "Czarny", hex: "#1a1a1a" },
-    { name: "Czerwony", hex: "#a51d2d" },
-    { name: "Niebieski", hex: DEFAULT_COLOR },
-    { name: "Zielony", hex: "#26653b" },
+    { name: _("Black"), hex: "#1a1a1a" },
+    { name: _("Red"), hex: "#a51d2d" },
+    { name: _("Blue"), hex: DEFAULT_COLOR },
+    { name: _("Green"), hex: "#26653b" },
 ];
 // Ściągawka w oknie „Formatowanie": [składnia, jak wygląda po zrenderowaniu].
+// Przykładowe słowa są tłumaczone — składnia znaczników rzecz jasna nie.
 const FORMATTING_HELP = [
-    ["**pogrubienie**", "<b>pogrubienie</b>"],
-    ["*kursywa*", "<i>kursywa</i>"],
-    ["__podkreślenie__", "<u>podkreślenie</u>"],
-    ["~~przekreślenie~~", "<s>przekreślenie</s>"],
-    ["[tekst](https://adres)", '<span underline="single" foreground="#1a5fb4">tekst</span>'],
+    ["**" + _("bold") + "**", "<b>" + _("bold") + "</b>"],
+    ["*" + _("italic") + "*", "<i>" + _("italic") + "</i>"],
+    ["__" + _("underline") + "__", "<u>" + _("underline") + "</u>"],
+    ["~~" + _("strikethrough") + "~~", "<s>" + _("strikethrough") + "</s>"],
+    ["[" + _("text") + "](https://" + _("address") + ")",
+        '<span underline="single" foreground="#1a5fb4">' + _("text") + "</span>"],
 ];
 // bottom: 15 podnosi tekst o 7,5 px. Papier na grafice kończy się w ~85/100
 // (niżej jest wtopiony cień), a font ma długie wydłużenia dolne — bez tego
@@ -65,6 +77,14 @@ function loadImageActor(path) {
     let actor = new Clutter.Actor({ width: pixbuf.get_width(), height: pixbuf.get_height() });
     actor.set_content(image);
     return actor;
+}
+
+// Nazwy plików teł są własne i polskie; menu pokazuje tłumaczone etykiety,
+// a plik dorzucony przez użytkownika — swoją nazwę bez rozszerzenia.
+function backgroundLabel(file) {
+    if (file === "karteczka-bristol-4.png") return _("Paper strip");
+    if (file === "karteczka-bristol-3.png") return _("Tall paper");
+    return file.replace(/\.png$/, "");
 }
 
 function listBackgrounds() {
@@ -148,7 +168,7 @@ MyDesklet.prototype = {
             // brak mapowania (np. instancja dodana ręcznie, z pominięciem
             // skryptu karteczki-nowa) — karteczka bez trwałego zapisu.
             this.note = {
-                content: "(brak danych karteczki — usuń i dodaj ponownie z menu pulpitu)",
+                content: _("(no note data — remove this one and add a new note from the desktop menu)"),
                 color: DEFAULT_COLOR,
             };
         }
@@ -283,7 +303,8 @@ MyDesklet.prototype = {
                 this._background = loadImageActor(IMG_DIR + "/" + names[i]);
                 break;
             } catch (e) {
-                global.logWarning("karteczki: nie wczytano tła " + names[i] + " (" + e + ")");
+                // Log techniczny, nie interfejs — zostaje po angielsku.
+                global.logWarning(UUID + ": failed to load background " + names[i] + " (" + e + ")");
             }
         }
         if (this._background) {
@@ -433,7 +454,7 @@ MyDesklet.prototype = {
             }
         }));
 
-        this._addChoiceMenu("Kolor atramentu",
+        this._addChoiceMenu(_("Ink color"),
             INK_COLORS.map(function (ink) { return { name: ink.name, value: ink.hex }; }),
             Lang.bind(this, function (hex) { return (this.note.color || DEFAULT_COLOR) === hex; }),
             Lang.bind(this, function (hex) {
@@ -442,27 +463,27 @@ MyDesklet.prototype = {
                 this._applyInkColor(hex);
             }));
 
-        this._addChoiceMenu("Tło",
+        this._addChoiceMenu(_("Background"),
             listBackgrounds().map(function (file) {
-                return { name: file.replace(/\.png$/, ""), value: file };
+                return { name: backgroundLabel(file), value: file };
             }),
             Lang.bind(this, function (file) { return (this.note.background || DEFAULT_BACKGROUND) === file; }),
             Lang.bind(this, this._setBackground));
 
-        this._addChoiceMenu("Rozmiar tekstu",
+        this._addChoiceMenu(_("Text size"),
             FONT_SIZES.map(function (f) { return { name: f.name, value: f.size }; }),
             Lang.bind(this, function (size) { return fontSpec(this.note.font).endsWith(" " + size); }),
             Lang.bind(this, this._setFontSize));
 
-        let helpItem = new PopupMenu.PopupMenuItem("Formatowanie");
+        let helpItem = new PopupMenu.PopupMenuItem(_("Formatting"));
         helpItem.connect("activate", Lang.bind(this, this._showFormattingHelp));
         this._menu.addMenuItem(helpItem);
 
-        let removeItem = new PopupMenu.PopupMenuItem("Usuń");
+        let removeItem = new PopupMenu.PopupMenuItem(_("Remove"));
         removeItem.connect("activate", Lang.bind(this, this._onRemoveClicked));
         this._menu.addMenuItem(removeItem);
 
-        let newItem = new PopupMenu.PopupMenuItem("Nowa karteczka");
+        let newItem = new PopupMenu.PopupMenuItem(_("New note"));
         newItem.connect("activate", Lang.bind(this, this._onNewClicked));
         this._menu.addMenuItem(newItem);
     },
@@ -471,7 +492,7 @@ MyDesklet.prototype = {
         let dialog = new ModalDialog.ModalDialog();
         let box = new St.BoxLayout({ vertical: true, style: "spacing: 6px; padding: 12px;" });
         box.add_child(new St.Label({
-            text: "Formatowanie treści karteczki",
+            text: _("Note formatting"),
             style: "font-weight: bold; padding-bottom: 8px;",
         }));
 
@@ -488,14 +509,14 @@ MyDesklet.prototype = {
         });
 
         box.add_child(new St.Label({
-            text: "Znaczniki nie zagnieżdżają się. Ctrl+klik otwiera link.\n" +
-                  "Dwuklik wchodzi w edycję, Enter zapisuje, Escape anuluje.",
+            text: _("Markers do not nest. Ctrl+click opens a link.") + "\n" +
+                  _("Double-click starts editing, Enter saves, Escape cancels."),
             style: "padding-top: 10px;",
         }));
 
         dialog.contentLayout.add_child(box);
         dialog.setButtons([{
-            label: "Zamknij",
+            label: _("Close"),
             action: function () { dialog.close(); },
             key: Clutter.KEY_Escape,
             default: true,

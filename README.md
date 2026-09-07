@@ -23,7 +23,14 @@ mkdir -p ~/.local/share/fonts
 cp assets/fonts/Caveat-*.ttf ~/.local/share/fonts/
 fc-cache -f
 
-# 3. "Dodaj karteczkę" w menu kontekstowym pulpitu
+# 3. tłumaczenia (interfejs jest po angielsku, polski w po/pl.po)
+for po in karteczki@jkatnik/po/*.po; do
+    lang=$(basename "$po" .po)
+    mkdir -p ~/.local/share/locale/$lang/LC_MESSAGES
+    msgfmt "$po" -o ~/.local/share/locale/$lang/LC_MESSAGES/karteczki@jkatnik.mo
+done
+
+# 4. "Dodaj karteczkę" w menu kontekstowym pulpitu
 mkdir -p ~/.local/share/nemo/actions
 sed "s|__KARTECZKI__|$PWD|" dodaj-karteczke.nemo_action \
     > ~/.local/share/nemo/actions/dodaj-karteczke.nemo_action
@@ -88,6 +95,27 @@ cytatów. W pliku JSON zapisywany jest zawsze surowy Markdown. Tę samą
   (`"Caveat 20"`); wpisana ręcznie inna rodzina przeżyje zmianę rozmiaru
   z menu. Font musi być zainstalowany w systemie, a Cinnamon zrestartowany
   po jego instalacji.
+
+## Tłumaczenia
+
+Interfejs jest po angielsku, tłumaczenia leżą w `karteczki@jkatnik/po/`
+(dziś: `pl.po`). Desklet szuka ich w `~/.local/share/locale`, więc po każdej
+zmianie `.po` trzeba przebudować `.mo` — pętla z kroku 3 instalacji.
+
+Język bierze się z ustawień sesji (`LANGUAGE`/`LANG`), nie z osobnej opcji
+desletu: przy `en_US` menu jest angielskie, przy `pl_PL` polskie.
+
+Po dopisaniu nowego ciągu w kodzie zaktualizuj szablon i tłumaczenia:
+
+```bash
+xgettext --language=JavaScript --keyword=_ --from-code=UTF-8 --no-wrap \
+    -o karteczki@jkatnik/po/karteczki@jkatnik.pot karteczki@jkatnik/*.js
+msgmerge -U karteczki@jkatnik/po/pl.po karteczki@jkatnik/po/karteczki@jkatnik.pot
+```
+
+`cinnamon-xlet-makepot` robi to samo i dodatkowo zbiera `name`/`description`
+z `metadata.json`, ale wymaga pakietu `python3-polib`, którego nie ma w tym
+systemie — te dwa ciągi są w `.pot` dopisane ręcznie.
 
 ## Skrypty
 

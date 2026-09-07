@@ -92,8 +92,12 @@ tych mechanizmów.
   Publikacja w Cinnamon Spices jest w planie (PLAN.md, Faza 10) i wymusi
   przeniesienie `bin/` do wnętrza xleta oraz rezygnację z instalowania
   akcji Nemo spoza katalogu desletu.
-- Interfejs jest dziś po polsku, na sztywno. i18n przez gettext to Faza 8 —
-  wtedy `msgid` przechodzą na angielski, a polski wraca jako `po/pl.po`.
+- **Interfejs po angielsku, tłumaczenia przez gettext.** Wszystkie widoczne
+  ciągi idą przez `_()` (`Gettext.dgettext(UUID, …)`), polski siedzi w
+  `karteczki@jkatnik/po/pl.po`, a `.mo` instaluje się do
+  `~/.local/share/locale`. Nowy ciąg w kodzie = aktualizacja `.pot` i `.po`
+  (komendy w README). Bez opcji wyboru języka w desklecie — bierze się z
+  ustawień sesji.
 
 ## Konwencje
 

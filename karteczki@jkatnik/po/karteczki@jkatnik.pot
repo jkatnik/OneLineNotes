@@ -1,0 +1,130 @@
+# Karteczki — Cinnamon desklet
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the karteczki@jkatnik package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: karteczki@jkatnik\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-07 12:18+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: karteczki@jkatnik/desklet.js:40
+msgid "Small"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:41
+msgid "Medium"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:42
+msgid "Large"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:47
+msgid "Black"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:48
+msgid "Red"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:49
+msgid "Blue"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:50
+msgid "Green"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:55
+msgid "bold"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:56
+msgid "italic"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:57
+msgid "underline"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:58
+msgid "strikethrough"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:59 karteczki@jkatnik/desklet.js:60
+msgid "text"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:59
+msgid "address"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:85
+msgid "Paper strip"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:86
+msgid "Tall paper"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:171
+msgid "(no note data — remove this one and add a new note from the desktop menu)"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:457
+msgid "Ink color"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:466
+msgid "Background"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:473
+msgid "Text size"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:478
+msgid "Formatting"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:482
+msgid "Remove"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:486
+msgid "New note"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:495
+msgid "Note formatting"
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:512
+msgid "Markers do not nest. Ctrl+click opens a link."
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:513
+msgid "Double-click starts editing, Enter saves, Escape cancels."
+msgstr ""
+
+#: karteczki@jkatnik/desklet.js:519
+msgid "Close"
+msgstr ""
+
+#: karteczki@jkatnik/metadata.json
+msgid "Sticky Notes"
+msgstr ""
+
+#: karteczki@jkatnik/metadata.json
+msgid "Sticky notes on the desktop, with Markdown formatting"
+msgstr ""
