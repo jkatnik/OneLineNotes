@@ -31,6 +31,7 @@ const FONT_SIZES = [
     { name: "Duża", size: 24 },
 ];
 const DEFAULT_COLOR = "#112971";
+const MAX_ROTATION = 5;  // stopnie w każdą stronę — karteczki mają wyglądać na rzucone, nie przekrzywione
 const INK_COLORS = [
     { name: "Czarny", hex: "#1a1a1a" },
     { name: "Czerwony", hex: "#a51d2d" },
@@ -83,6 +84,10 @@ function listBackgrounds() {
 // pozwolić Pango zejść do własnego (drobnego) rozmiaru bazowego.
 function fontSpec(font) {
     return /\d$/.test(font || "") ? font : DEFAULT_FONT;
+}
+
+function randomRotation() {
+    return Math.round((Math.random() * 2 - 1) * MAX_ROTATION * 100) / 100;
 }
 
 function readJson(path) {
@@ -141,6 +146,13 @@ MyDesklet.prototype = {
             !GLib.file_test(IMG_DIR + "/" + this.note.background, GLib.FileTest.EXISTS)) {
             this.note.background = DEFAULT_BACKGROUND;
         }
+        // Kąt losowany raz i zapisany — inaczej karteczki przeskakiwałyby przy
+        // każdym restarcie powłoki. Zapis pomija modified_at: to nie jest
+        // zmiana treści, tylko uzupełnienie brakującego pola.
+        if (typeof this.note.rotation !== "number") {
+            this.note.rotation = randomRotation();
+            if (this.notePath) writeJson(this.notePath, this.note);
+        }
     },
 
     _buildUI: function () {
@@ -148,6 +160,11 @@ MyDesklet.prototype = {
             reactive: true,
             layout_manager: new Clutter.BinLayout(),
         });
+        // Obrót na kontenerze, nie na this.actor — tamtym zarządza Cinnamon
+        // przy przeciąganiu. Pivot ułamkowy trzyma oś w środku karty także
+        // po zmianie tła na inny rozmiar.
+        this._container.set_pivot_point(0.5, 0.5);
+        this._container.set_rotation_angle(Clutter.RotateAxis.Z_AXIS, this.note.rotation || 0);
         this._background = null;
         this._applyBackground();
 

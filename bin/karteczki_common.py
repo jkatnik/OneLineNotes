@@ -1,6 +1,7 @@
 """CRUD karteczek: plik JSON na notatkę + wpis w gsettings enabled-desklets."""
 import ast
 import json
+import random
 import subprocess
 import uuid
 from datetime import datetime, timezone
@@ -15,6 +16,7 @@ DEFAULT_BACKGROUND = "karteczka-bristol-4.png"  # plik z karteczki@jkatnik/img/
 POSITION_STEP = 30
 BASE_X = 100
 BASE_Y = 100
+MAX_ROTATION = 5  # stopnie w każdą stronę, żeby karteczki wyglądały na rzucone
 
 
 def gsettings_get_desklets(run=subprocess.run):
@@ -73,6 +75,7 @@ def create_note(data_dir=DATA_DIR, run=subprocess.run, position=None):
         "color": DEFAULT_COLOR,
         "font": DEFAULT_FONT,
         "background": DEFAULT_BACKGROUND,
+        "rotation": round(random.uniform(-MAX_ROTATION, MAX_ROTATION), 2),
         "position": {"x": x, "y": y},
         "created_at": now,
         "modified_at": now,

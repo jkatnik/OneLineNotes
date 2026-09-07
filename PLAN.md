@@ -17,10 +17,12 @@
 
 ## Status (ostatnia aktualizacja: 2026-09-07)
 
-Wszystkie fazy (0-7) zrobione i zweryfikowane na żywym Cinnamonie.
+Fazy 0-7 i 11 zrobione i zweryfikowane na żywym Cinnamonie; zostają fazy
+8-10 (i18n, licencja, publikacja w Spices).
 Ostatnia sesja (2026-09-07) dołożyła formatowanie Markdown, wybór koloru
 atramentu, tła i rozmiaru tekstu, pozycjonowanie nowej karteczki w miejscu
-menu, kursor-rączkę nad linkiem, README i ściągawkę „Formatowanie".
+menu, kursor-rączkę nad linkiem, README, ściągawkę „Formatowanie" i losowy
+obrót karteczek.
 
 - ✅ Faza 0 — format `enabled-desklets` potwierdzony eksperymentalnie:
   `UUID:instance_id:X:Y`. Akcja Nemo na tle pulpitu **zweryfikowana
@@ -49,6 +51,7 @@ menu, kursor-rączkę nad linkiem, README i ściągawkę „Formatowanie".
 | Kolor atramentu | domyślnie niebieski `#112971`; z menu też czarny `#1a1a1a`, czerwony `#a51d2d`, zielony `#26653b` |
 | Padding tekstu | `{ top: 0, right: 16, bottom: 15, left: 16 }` — `bottom` podnosi tekst o 7,5 px, bo papier kończy się w ~85/100 wysokości grafiki |
 | Wyrównanie | `Clutter.BinLayout`, `y_align: CENTER`, `x_align: START` |
+| Obrót | pole `rotation` w JSON, losowane raz z zakresu ±5° (`MAX_ROTATION`) |
 | Domyślna treść nowej karteczki | `Lorem ipsum` |
 
 ### Formatowanie treści (Markdown → Pango markup)
@@ -187,6 +190,7 @@ Nie powstały (i nie są potrzebne): `settings-schema.json`, `icon.png`.
   "color": "#112971",
   "font": "Caveat 20",
   "background": "karteczka-bristol-4.png",
+  "rotation": 2.27,
   "position": { "x": 100, "y": 100 },
   "created_at": "2026-09-06T12:00:00+02:00",
   "modified_at": "2026-09-06T12:00:00+02:00"
@@ -353,19 +357,23 @@ Zmiany, których to wymaga w obecnym projekcie:
 6. PR: jeden desklet na pull request, zmiany tylko w jego katalogu,
    tłumaczenia przetestowane przez `--install` przed wysłaniem.
 
-### ⬜ Faza 11 — lekki obrót karteczek (±5°)
+### ✅ Faza 11 — lekki obrót karteczek (±5°)
 
-Żeby karteczki wyglądały na rozrzucone, a nie wyrównane do siatki.
+`set_pivot_point(0.5, 0.5)` + `set_rotation_angle(Z_AXIS, kąt)` na
+`_container` (nie na `this.actor` — tym zarządza Cinnamon przy D&D). Kąt
+losowany raz przy tworzeniu notatki i zapisany w JSON jako `rotation`;
+inaczej karteczki przeskakiwałyby przy każdym restarcie powłoki. Notatki
+bez tego pola dostają kąt przy pierwszym wczytaniu — zapis pomija
+`modified_at`, bo to uzupełnienie pola, nie zmiana treści. Wyprostowanie
+karteczki: `"rotation": 0` w pliku.
 
-- `actor.set_pivot_point(0.5, 0.5)` + `set_rotation_angle(Clutter.RotateAxis.Z_AXIS, kąt)`
-  na `_container` (nie na `this.actor` — tym zarządza Cinnamon przy D&D).
-- Kąt losowany **raz, przy tworzeniu notatki**, i zapisany w JSON jako
-  `rotation`; inaczej karteczki przeskakiwałyby przy każdym restarcie
-  powłoki. Notatki bez tego pola dostają kąt przy pierwszym wczytaniu.
-- Do zweryfikowania na żywo: czy trafianie w link i wejście w edycję działa
-  po obrocie (`transform_stage_point` i picking uwzględniają transformacje,
-  więc powinno) oraz czy obrócona karta nie jest przycinana — przy 5° i
-  karcie 350×100 obrys rośnie o ~7 px w poziomie i ~30 px w pionie.
+Zweryfikowane na żywym pulpicie:
+- mapowanie współrzędnych uwzględnia obrót co do 0,1 px (punkt 100 px na
+  prawo od środka karty obróconej o 2,27° dał lokalne 274,9/46,0 zamiast
+  275/50) — czyli trafianie w link i wejście w edycję działa po obrocie;
+- `clip_to_allocation` jest wyłączone na karcie, na aktorze desletu i na
+  kontenerze pulpitu, więc wystające rogi (przy 5° obrys rośnie o ~7 px w
+  poziomie i ~30 px w pionie) nie są przycinane.
 
 ## Poza zakresem (patrz AGENTS.md → YAGNI)
 

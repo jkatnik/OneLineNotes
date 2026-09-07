@@ -54,6 +54,16 @@ class KarteczkiCommonTest(unittest.TestCase):
         self.assertEqual(len(self.gsettings.entries), 1)
         self.assertTrue(self.gsettings.entries[0].startswith(f"{DESKLET_UUID}:1:"))
 
+    def test_create_note_losuje_kat_w_zakresie(self):
+        katy = set()
+        for _ in range(20):
+            _, note_uuid = create_note(self.data_dir, run=self.gsettings)
+            kat = json.loads((self.data_dir / f"{note_uuid}.json").read_text())["rotation"]
+            self.assertGreaterEqual(kat, -5)
+            self.assertLessEqual(kat, 5)
+            katy.add(kat)
+        self.assertGreater(len(katy), 1, "kąt ma być losowy, nie stały")
+
     def test_create_note_uzywa_podanej_pozycji(self):
         _, note_uuid = create_note(self.data_dir, run=self.gsettings, position=(1234, 567))
 

@@ -73,6 +73,9 @@ cytatów. W pliku JSON zapisywany jest zawsze surowy Markdown. Tę samą
   przezroczystym tłem. Skalowanie spłaszcza fakturę papieru — lepiej
   przygotować plik 1:1 niż liczyć na pomniejszanie.
 - **Rozmiar tekstu** — podmenu Mała / Średnia / Duża (16/20/24).
+- **Obrót** — każda karteczka dostaje przy tworzeniu losowy kąt ±5°, żeby
+  wyglądały na rozrzucone. Kąt siedzi w polu `rotation` i nie zmienia się
+  między restartami; `"rotation": 0` prostuje karteczkę.
 - **Rodzina czcionki** — pole `font` w pliku notatki to pełny opis Pango
   (`"Caveat 20"`); wpisana ręcznie inna rodzina przeżyje zmianę rozmiaru
   z menu. Font musi być zainstalowany w systemie, a Cinnamon zrestartowany
