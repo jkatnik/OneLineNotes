@@ -107,6 +107,13 @@ pozycje linków. Obsługiwane: `**pogrubienie**`, `*kursywa*`,
   `PopupSubMenuMenuItem` nie przyjmuje ikony, a dołożenie jej jako osobnego
   aktora dokłada pozycji kolumnę — szerokości kolumn są wspólne dla całego
   menu, więc etykiety podmenu robiły się zerowej szerokości.
+- **Edycja prostuje kartę** (`rotation` na 0, przywracane przy wyjściu).
+  Powód nie jest kosmetyczny: w obróconym aktorze Clutter gubi zaznaczony
+  fragment tekstu — podświetlenie widać, liter nie, i to niedeterministycznie
+  („mruganie"). Ustalone serią zrzutów przy prawdziwym zaznaczaniu myszą:
+  żadna kombinacja `selection-color`/`selected-text-color` tego nie usuwała
+  (wymuszony `queue_redraw` wręcz pogarszał — tekst znikał w 8/8 ujęć), a
+  wyzerowanie kąta naprawiło w 6/6. Przy okazji pisze się wygodniej.
 - **„Usuń" pyta o potwierdzenie** (`ModalDialog` z czerwonym
   `destructive_action`) z checkboxem „Nie pytaj ponownie". Zaznaczenie
   zapisuje się dopiero po potwierdzeniu usunięcia — checkbox + „Anuluj"

@@ -560,6 +560,11 @@ MyDesklet.prototype = {
         }, this) || !Main.pushModal(this._text)) return;
         this._editing = true;
         this._setLinkCursor(false);
+        // Karta prostuje się na czas edycji: w obróconym aktorze Clutter gubi
+        // zaznaczony fragment tekstu przy przerysowaniu — raz widać podświetlenie
+        // bez liter, raz litery. Przy zerowym kącie zaznaczenie rysuje się
+        // poprawnie (sprawdzone serią zrzutów), a pisze się wygodniej.
+        this._container.set_rotation_angle(Clutter.RotateAxis.Z_AXIS, 0);
         this._text.set_use_markup(false);
         this._text.set_text(this.note.content || "");
         this._text.set_editable(true);
@@ -589,6 +594,7 @@ MyDesklet.prototype = {
         this._text.set_editable(false);
         this._text.set_selectable(false);
         this._text.set_reactive(false);
+        this._container.set_rotation_angle(Clutter.RotateAxis.Z_AXIS, this.note.rotation || 0);
         global.stage.set_key_focus(null);
         if (save) {
             this.note.content = edited;
