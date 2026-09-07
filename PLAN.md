@@ -39,7 +39,11 @@ obrót karteczek.
   `~/.local/share/nemo/actions/dodaj-karteczke.nemo_action`.
 - ✅ Faza 4 — wygląd docelowy, 9-slice okazał się niepotrzebny (karta ma
   stały rozmiar, obrazek renderowany 1:1).
-- ⬜ Faza 5 — README i scenariusz testowy: nie zaczęte.
+- ✅ Faza 5 — `README.md` z instalacją i ręcznym scenariuszem testowym.
+- ✅ Faza 6 — wybór tła i rozmiaru tekstu z menu (pola `background`/`font`).
+- ✅ Faza 7 — ściągawka „Formatowanie" w oknie modalnym.
+- ✅ Faza 11 — losowy obrót karteczek ±3°.
+- ⬜ Fazy 8-10 — i18n, licencja GPL-3.0, publikacja w Spices.
 
 ### Aktualne parametry wyglądu (`desklet.js`)
 
@@ -51,7 +55,7 @@ obrót karteczek.
 | Kolor atramentu | domyślnie niebieski `#112971`; z menu też czarny `#1a1a1a`, czerwony `#a51d2d`, zielony `#26653b` |
 | Padding tekstu | `{ top: 0, right: 16, bottom: 15, left: 16 }` — `bottom` podnosi tekst o 7,5 px, bo papier kończy się w ~85/100 wysokości grafiki |
 | Wyrównanie | `Clutter.BinLayout`, `y_align: CENTER`, `x_align: START` |
-| Obrót | pole `rotation` w JSON, losowane raz z zakresu ±5° (`MAX_ROTATION`) |
+| Obrót | pole `rotation` w JSON, losowane raz z zakresu ±3° (`MAX_ROTATION`) |
 | Domyślna treść nowej karteczki | `Lorem ipsum` |
 
 ### Formatowanie treści (Markdown → Pango markup)
@@ -357,7 +361,7 @@ Zmiany, których to wymaga w obecnym projekcie:
 6. PR: jeden desklet na pull request, zmiany tylko w jego katalogu,
    tłumaczenia przetestowane przez `--install` przed wysłaniem.
 
-### ✅ Faza 11 — lekki obrót karteczek (±5°)
+### ✅ Faza 11 — lekki obrót karteczek (±3°)
 
 `set_pivot_point(0.5, 0.5)` + `set_rotation_angle(Z_AXIS, kąt)` na
 `_container` (nie na `this.actor` — tym zarządza Cinnamon przy D&D). Kąt

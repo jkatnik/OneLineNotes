@@ -16,7 +16,7 @@ DEFAULT_BACKGROUND = "karteczka-bristol-4.png"  # plik z karteczki@jkatnik/img/
 POSITION_STEP = 30
 BASE_X = 100
 BASE_Y = 100
-MAX_ROTATION = 5  # stopnie w każdą stronę, żeby karteczki wyglądały na rzucone
+MAX_ROTATION = 3  # stopnie w każdą stronę, żeby karteczki wyglądały na rzucone
 
 
 def gsettings_get_desklets(run=subprocess.run):

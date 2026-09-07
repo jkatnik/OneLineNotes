@@ -31,7 +31,7 @@ const FONT_SIZES = [
     { name: "Duża", size: 24 },
 ];
 const DEFAULT_COLOR = "#112971";
-const MAX_ROTATION = 5;  // stopnie w każdą stronę — karteczki mają wyglądać na rzucone, nie przekrzywione
+const MAX_ROTATION = 3;  // stopnie w każdą stronę — karteczki mają wyglądać na rzucone, nie przekrzywione
 const INK_COLORS = [
     { name: "Czarny", hex: "#1a1a1a" },
     { name: "Czerwony", hex: "#a51d2d" },

@@ -59,8 +59,8 @@ class KarteczkiCommonTest(unittest.TestCase):
         for _ in range(20):
             _, note_uuid = create_note(self.data_dir, run=self.gsettings)
             kat = json.loads((self.data_dir / f"{note_uuid}.json").read_text())["rotation"]
-            self.assertGreaterEqual(kat, -5)
-            self.assertLessEqual(kat, 5)
+            self.assertGreaterEqual(kat, -3)
+            self.assertLessEqual(kat, 3)
             katy.add(kat)
         self.assertGreater(len(katy), 1, "kąt ma być losowy, nie stały")
 
